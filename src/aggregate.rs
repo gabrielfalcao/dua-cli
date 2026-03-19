@@ -164,7 +164,7 @@ fn output_colored_path(
             path.if_supports_color(Stdout, |path| path.color(color))
         )
     } else {
-        writeln!(out, "{size:>size_width$} {path}{errors}")
+        writeln!(out, "{size:>size_width$} ({num_bytes} bytes) {path}{errors}")
     }
 }
 
