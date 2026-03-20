@@ -1,4 +1,5 @@
 (defun palette-regexp-to-string ()
+  (save-match-data
   (let* (
          (color-name (match-string 1))
          (color-tone-1 (match-string 5))
@@ -11,8 +12,13 @@
          (red (match-string 15))
          (green (match-string 16))
          (blue (match-string 17))
+         (line-rs (format "(%24s, %S, [%3d, %3d, %3d] ),"
+            (format "%S" color-name)
+            (format "%S" (format "#%s" (string-join (list hex-red hex-green hex-blue) "")))
+            red, green, blue))
          )
     )
+  )
   )
 (defun palette-color-scavenge-buffer (&optional buffer-or-name)
   (interactive)
