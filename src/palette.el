@@ -1,3 +1,42 @@
+(defun palette-match-subexps-plist ()
+  (save-match-data
+    (let* (
+           (color-name (match-string 1))
+           (color-tone-1 (match-string 5))
+           (color-tone-2 (match-string 8))
+
+           (hex-red (match-string 11))
+           (hex-green (match-string 12))
+           (hex-blue (match-string 13))
+
+           (red (match-string 15))
+           (green (match-string 16))
+           (blue (match-string 17))
+           (line-rs (format "(%24s, %S, [%3d, %3d, %3d] ),"
+                            (format "%S" color-name)
+                            (format "%S" (format "#%s" (string-join (list hex-red hex-green hex-blue) "")))
+                            red, green, blue))
+           )
+      (list
+       'color-name color-name
+       'color-tone-1 color-tone-1
+       'color-tone-2 color-tone-2
+
+       'hex-red hex-red
+       'hex-green hex-green
+       'hex-blue hex-blue
+
+       'red red
+       'green green
+       'blue blue
+       'line-rs line-rs
+       )
+      )
+    )
+  )
+
+
+
 (defun palette-color-scavenge-buffer (&optional buffer-or-name)
   (interactive)
   (unless (or (bufferp buffer-or-name)
@@ -41,9 +80,9 @@
                          :hex-green 12
                          :hex-blue 13
 
-                         :val-red 15
-                         :val-green 16
-                         :val-blue 17))
+                         :red 15
+                         :green 16
+                         :blue 17))
 
            (key-pair-len (/ (length gpkeys) 2))
            (keys
@@ -71,19 +110,13 @@
             ;; (erase-c-messages)
             ;; (c-message-open)
             (while (re-search-forward regexp nil t)
+              (let* (
 
-              (seq-do-indexed
-               (lambda (key index)
-                 (let* (
-                        (name (string-trim-left (symbol-name key) "[:]+"))
-                        (value (plist-get gpkeys key))
-                        )
-                   (c-message "%6s %8s key:%S %8s value:%S\n"
-                              (format "[%d]" index)
-                              (format "%s" (cl-type-of key)) name
-                              (format "%s" (cl-type-of value)) value)
-                   )) ; end (lambda)
-               keys); end seq-do-indexed
+                     )
+                (goto-char (match-end 0)
+
+                )
+
               ); end (let* ...)
             ); end (defun palette-to-string () ...)
 
