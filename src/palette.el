@@ -71,6 +71,7 @@
             ;; (erase-c-messages)
             ;; (c-message-open)
             (while (re-search-forward regexp nil t)
+
               (seq-do-indexed
                (lambda (key index)
                  (let* (
