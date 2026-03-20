@@ -1,6 +1,7 @@
 use crate::{crossdev, ByteFormat, InodeFilter, Throttle, WalkOptions, WalkResult};
 use anyhow::Result;
 use filesize::PathExt;
+use num_format::{Locale, ToFormattedString};
 use owo_colors::{AnsiColors as Color, OwoColorize, Stream::Stdout};
 use std::time::Duration;
 use std::{io, path::Path};
@@ -17,6 +18,8 @@ pub fn aggregate(
     byte_format: ByteFormat,
     paths: impl IntoIterator<Item = impl AsRef<Path>>,
 ) -> Result<(WalkResult, Statistics)> {
+    let display_bytes = true;
+
     let mut res = WalkResult::default();
     let mut stats = Statistics {
         smallest_file_in_bytes: u128::MAX,
@@ -94,6 +97,7 @@ pub fn aggregate(
                 num_errors,
                 path_color_of(&path),
                 byte_format,
+                display_bytes,
             )?;
         }
         total += num_bytes;
@@ -114,6 +118,7 @@ pub fn aggregate(
                 num_errors,
                 path_color_of(&path),
                 byte_format,
+                display_bytes,
             )?;
         }
     }
@@ -126,6 +131,7 @@ pub fn aggregate(
             res.num_errors,
             None,
             byte_format,
+            display_bytes,
         )?;
     }
     Ok((res, stats))
@@ -142,11 +148,12 @@ fn output_colored_path(
     num_errors: u64,
     path_color: Option<Color>,
     byte_format: ByteFormat,
+    display_bytes: bool,
 ) -> std::result::Result<(), io::Error> {
     let size = byte_format.display(num_bytes).to_string();
     let size = size.if_supports_color(Stdout, |text| text.green());
     let size_width = byte_format.width();
-    let path = path.as_ref().display();
+    let path = path.as_ref().display().to_string();
 
     let errors = if num_errors != 0 {
         format!(
@@ -156,15 +163,24 @@ fn output_colored_path(
     } else {
         "".into()
     };
+    let path_display = if let Some(color) = path_color {
+        let display = path.if_supports_color(Stdout, |path| path.color(color));
+        format!("{display}")
+    } else {
+        format!("{path}")
+    };
+    if display_bytes {
+        let num_bytes_display = {
+            let num_bytes_str = num_bytes.to_formatted_string(&Locale::de);
+            format!("({num_bytes_str} bytes)")
+        };
 
-    if let Some(color) = path_color {
         writeln!(
             out,
-            "{size:>size_width$} {}{errors}",
-            path.if_supports_color(Stdout, |path| path.color(color))
+            "{size:>size_width$} {path_display} {num_bytes_display} {errors}"
         )
     } else {
-        writeln!(out, "{size:>size_width$} ({num_bytes} bytes) {path}{errors}")
+        writeln!(out, "{size:>size_width$} {path_display} {errors}")
     }
 }
 
