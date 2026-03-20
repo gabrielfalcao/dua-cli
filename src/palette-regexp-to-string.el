@@ -17,21 +17,21 @@
                           red, green, blue))
          )
     (list
-               'color-name (match-string    1)
-             'color-tone-1 (match-string    5)
-             'color-tone-2 (match-string    8)
+     'color-name (match-string    1)
+     'color-tone-1 (match-string    5)
+     'color-tone-2 (match-string    8)
 
-                  'hex-red (match-string   11)
-                'hex-green (match-string   12)
-                 'hex-blue (match-string   13)
+     'hex-red (match-string   11)
+     'hex-green (match-string   12)
+     'hex-blue (match-string   13)
 
-                      'red (match-string   15)
-                    'green (match-string   16)
-                     'blue (match-string   17)
-                     'line-rs line-rs
-                     )
+     'red (match-string   15)
+     'green (match-string   16)
+     'blue (match-string   17)
+     'line-rs line-rs
      )
     )
+  )
 
 
 
