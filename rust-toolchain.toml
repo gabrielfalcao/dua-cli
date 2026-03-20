@@ -1,0 +1,8 @@
+[toolchain]
+channel = "nightly-2026-03-14"
+components = ["rust-src", "rustc-dev", "rustfmt", "llvm-tools-preview", "rust-docs"]
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
