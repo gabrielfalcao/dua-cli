@@ -1,7 +1,3 @@
-
-aluminum dark dark      #2E3436       46  52  54
-yellow light            #FCE94F      252 233  79
-
 yellow light            #FCE94F      252 233  79
 yellow medium           #EDD400      237 212   0
 yellow dark             #C4A000      196 160   0
