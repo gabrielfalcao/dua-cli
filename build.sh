@@ -61,3 +61,4 @@ fi
 
 echo "${targets[*]}" | parallel rustup target add "{}"
 echo "${targets[*]}" | parallel cargo zigbuild --target "{}"
+echo "${targets[*]}" > target/webos-tv-armv7
