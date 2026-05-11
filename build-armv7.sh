@@ -41,9 +41,12 @@ declare -a targets=(
 
 1>&2 echo -e "\x1b[2J\x1b[3J\x1b[H"
 
+cargo build
 for target in $(find "${script_path}/target" -mindepth 2 -name debug -type d -exec path parent {} \;); do
     name=$(basename "${target}")
     # 1>&2 declare -p name target
+    rustup target add "${target}"
+    cargo zigbuild --target "${target}"
     cp -fv "${target}/debug/dua" "${script_path}/dua__${name}"
     echo
 done
