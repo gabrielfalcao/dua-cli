@@ -59,18 +59,29 @@ else
     # targets=($(rustup show | gawk 'BEGIN { PROCINFO["sorted_in"]="@ind_str_asc"; delete TARGETS; can_capture=0; } { if (can_capture) { TARGETS[$NF]=$NF; } else if ($0 ~ /installed\s+targets:/) {can_capture=1;}  } END { for (name in TARGETS) {print(name) } }'))
 fi
 declare -a cmd=()
-declare -- logpath="$(path canon ~/workbench/$(today))/logs/"
+declare -- logdir="$(path canon "~/workbench/$(today)")/logs"
 declare -- logname=""
+declare -- logpath=""
+declare -- stderr_path=""
+declare -- stdout_path=""
+mkdir -p "${logdir}"
 
 for target in ${targets[@]}; do
     cmd=(
-        cargo cross build --target="${target}"
+        # cargo cross build -- --target="${target}"
+        cargo-zigbuild --target "${target}"
     )
+    logname="$(slugify-string "${cmd[@]}")"
+    logpath="${logdir}/$(slugify-string "${cmd[@]}")"
+    stderr_path=${logpath}.stderr.log
+    stdout_path=${logpath}.stdout.log
     1>&2 echo -e "\x1b[1;38;2;195;36;84m${cmd[@]}\x1b[0m"
-    if ${cmd[@]} | tee ; then
+    if 2>${stderr_path} ${cmd[@]} | tee ${stdout_path}; then
         1>&2 echo -e "\x1b[1;38;2;30;188;115m${cmd[@]}: \x1b[1;38;2;145;219;105mok\x1b[0m"
     else
         code=$?
-        1>&2 echo "\x1b[1;38;2;232;59;59m${cmd[@]}: \x1b[1;38;2;247;150;23mfailed \x1b[1;38;2;249;194;43m${code}\x1b[0m"
+        1>&2 echo -e "\x1b[1;38;2;232;59;59m${cmd[@]}: \x1b[1;38;2;247;150;23mfailed \x1b[1;38;2;249;194;43m${code}\x1b[0m"
+        1>&2 cat "${stderr_path}"
+
     fi
 done
