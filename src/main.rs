@@ -79,6 +79,7 @@ fn main() -> Result<()> {
             .with_context(|| "Could not instantiate terminal")?;
 
             let keys_rx = input_channel();
+
             let mut app = TerminalApp::initialize(
                 &mut terminal,
                 walk_options,
@@ -111,7 +112,8 @@ fn main() -> Result<()> {
                 res.map(|(walk_result, paths)| {
                     if let Some(paths) = paths {
                         for path in paths {
-                            println!("{}", path.display())
+                            let fallback = path.clone();
+                            println!("{}", path.canonicalize().unwrap_or(fallback).display())
                         }
                     }
                     walk_result.to_exit_code()
