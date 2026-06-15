@@ -1,7 +1,9 @@
 use crate::{crossdev, ByteFormat, InodeFilter, Throttle, WalkOptions, WalkResult};
 use anyhow::Result;
 use filesize::PathExt;
-use owo_colors::{AnsiColors as Color, OwoColorize};
+use owo_colors::{AnsiColors as Color, OwoColorize, Stream::Stdout, Style};
+use supports_color::{ColorLevel, Stream};
+
 use std::time::Duration;
 use std::{io, path::Path};
 
@@ -132,7 +134,12 @@ pub fn aggregate(
 }
 
 fn path_color_of(path: impl AsRef<Path>) -> Option<Color> {
-    (!path.as_ref().is_file()).then_some(Color::Cyan)
+    let level = supports_color::on(Stream::Stdout);
+
+    match (level.has_basic, level.has_256, level.has_16m) {
+        (false, false, false) => None,
+        (true, _, _) => (!path.as_ref().is_file()).then_some(Color::Cyan),
+    }
 }
 
 fn output_colored_path(
@@ -144,7 +151,7 @@ fn output_colored_path(
     byte_format: ByteFormat,
 ) -> std::result::Result<(), io::Error> {
     let size = byte_format.display(num_bytes).to_string();
-    let size = size.green();
+    let size = size.if_supports_color(Stdout, |text| text.green());
     let size_width = byte_format.width();
     let path = path.as_ref().display();
 
@@ -156,7 +163,12 @@ fn output_colored_path(
         .unwrap_or_default();
 
     if let Some(color) = path_color {
-        writeln!(out, "{size:>size_width$} {}{errors}", path.color(color))
+        writeln!(
+            out,
+            "{}",
+            format!("{size:>size_width$} {}{errors}", path.color(color))
+                .if_supports_color(Stdout, |text| text.style(Style::new().color(color)))
+        )
     } else {
         writeln!(out, "{size:>size_width$} {path}{errors}")
     }
