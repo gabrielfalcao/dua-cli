@@ -24,6 +24,7 @@ pub struct MainWindowProps<'a> {
     pub elapsed: Option<std::time::Duration>,
     pub display: DisplayOptions,
     pub state: &'a AppState,
+    pub config: &'a dua::Config,
 }
 
 #[derive(Default)]
@@ -50,6 +51,7 @@ impl MainWindow {
             elapsed,
             display,
             state,
+            config,
         } = props.borrow();
 
         let (entries_style, help_style, mark_style, glob_style) = pane_border_style(state.focussed);
@@ -61,9 +63,9 @@ impl MainWindow {
         let (entries_area, help_pane, mark_pane) = {
             let (left_pane, right_pane) = content_layout(content_area, state.ui_split);
             match (&mut self.help_pane, &mut self.mark_pane) {
-                (Some(ref mut pane), None) => (left_pane, Some((right_pane, pane)), None),
-                (None, Some(ref mut pane)) => (left_pane, None, Some((right_pane, pane))),
-                (Some(ref mut help), Some(ref mut mark)) => {
+                (Some(pane), None) => (left_pane, Some((right_pane, pane)), None),
+                (None, Some(pane)) => (left_pane, None, Some((right_pane, pane))),
+                (Some(help), Some(mark)) => {
                     let (top_area, bottom_area) = right_pane_layout(right_pane, state.ui_split);
                     (left_pane, Some((top_area, help)), Some((bottom_area, mark)))
                 }
@@ -72,7 +74,7 @@ impl MainWindow {
         };
 
         let (entries_area, glob_pane) = match &mut self.glob_pane {
-            Some(ref mut glob_pane) => {
+            Some(glob_pane) => {
                 let regions = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([Max(256), Length(3)].as_ref())
@@ -94,6 +96,7 @@ impl MainWindow {
             let props = HelpPaneProps {
                 border_style: help_style,
                 has_focus: matches!(state.focussed, Help),
+                esc_navigates_back: config.keys.esc_navigates_back,
             };
             pane.render(props, help_area, buffer);
         }
@@ -129,6 +132,8 @@ impl MainWindow {
                 traversal_start: *start,
                 elapsed: *elapsed,
                 sort_mode: state.sorting,
+                pending_exit: state.pending_exit,
+                esc_navigates_back: config.keys.esc_navigates_back,
             },
             footer_area,
             buffer,
@@ -145,7 +150,11 @@ impl MainWindow {
 
 fn right_pane_layout(right_pane: Rect, ui_split: bool) -> (Rect, Rect) {
     let regions = Layout::default()
-        .direction(if ui_split { Direction::Horizontal } else {Direction::Vertical})
+        .direction(if ui_split {
+            Direction::Horizontal
+        } else {
+            Direction::Vertical
+        })
         .constraints([Percentage(50), Percentage(50)].as_ref())
         .split(right_pane);
     (regions[0], regions[1])
@@ -153,7 +162,11 @@ fn right_pane_layout(right_pane: Rect, ui_split: bool) -> (Rect, Rect) {
 
 fn content_layout(content_area: Rect, ui_split: bool) -> (Rect, Rect) {
     let regions = Layout::default()
-        .direction(if ui_split { Direction::Vertical } else {Direction::Horizontal})
+        .direction(if ui_split {
+            Direction::Vertical
+        } else {
+            Direction::Horizontal
+        })
         .constraints([Percentage(50), Percentage(50)].as_ref())
         .split(content_area);
     (regions[0], regions[1])

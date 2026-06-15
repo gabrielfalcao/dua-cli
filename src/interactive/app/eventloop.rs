@@ -1,20 +1,19 @@
 use crate::interactive::state::FilesystemScan;
 use crate::interactive::{
+    CursorDirection, CursorMode, DisplayOptions, EntryCheck, MarkEntryMode,
     app::navigation::Navigation,
     state::FocussedPane,
-    widgets::{glob_search, MainWindow, MainWindowProps},
-    CursorDirection, CursorMode, DisplayOptions, EntryCheck, MarkEntryMode,
+    widgets::{MainWindow, MainWindowProps, glob_search},
 };
 use anyhow::Result;
 use crossbeam::channel::Receiver;
-use crosstermion::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use crosstermion::input::Event;
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use dua::{
+    Config, WalkResult,
     traverse::{BackgroundTraversal, EntryData, Traversal, TreeIndex},
-    WalkResult,
 };
 use std::path::PathBuf;
-use tui::{backend::Backend, buffer::Buffer, layout::Rect, widgets::Widget, Terminal};
+use tui::{Terminal, backend::Backend, buffer::Buffer, layout::Rect, widgets::Widget};
 
 use super::state::{AppState, Cursor};
 use super::tree_view::TreeView;
@@ -36,6 +35,7 @@ impl AppState {
         tree_view: &TreeView<'_>,
         display: DisplayOptions,
         terminal: &mut Terminal<B>,
+        config: &Config,
     ) -> Result<()>
     where
         B: Backend,
@@ -48,6 +48,7 @@ impl AppState {
             elapsed: self.stats.elapsed,
             display,
             state: self,
+            config,
         };
 
         let mut cursor = Cursor::default();
@@ -64,7 +65,7 @@ impl AppState {
     }
 
     pub fn traverse(&mut self, traversal: &Traversal) -> Result<()> {
-        let traverasal = BackgroundTraversal::start(
+        let bg_traversal = BackgroundTraversal::start(
             traversal.root_index,
             &self.walk_options,
             self.root_paths.clone(),
@@ -73,7 +74,7 @@ impl AppState {
         )?;
         self.navigation_mut().view_root = traversal.root_index;
         self.scan = Some(FilesystemScan {
-            active_traversal: traverasal,
+            active_traversal: bg_traversal,
             previous_selection: None,
         });
         Ok(())
@@ -90,12 +91,13 @@ impl AppState {
         traversal: &mut Traversal,
         display: &mut DisplayOptions,
         terminal: &mut Terminal<B>,
+        config: &Config,
     ) -> Result<()>
     where
         B: Backend,
     {
         let tree_view = self.tree_view(traversal);
-        self.draw(window, &tree_view, *display, terminal)?;
+        self.draw(window, &tree_view, *display, terminal, config)?;
         Ok(())
     }
 
@@ -107,15 +109,16 @@ impl AppState {
         display: &mut DisplayOptions,
         terminal: &mut Terminal<B>,
         events: Receiver<Event>,
+        config: &Config,
     ) -> Result<WalkResult>
     where
         B: Backend,
     {
-        self.refresh_screen(window, traversal, display, terminal)?;
+        self.refresh_screen(window, traversal, display, terminal, config)?;
 
         loop {
             if let Some(result) =
-                self.process_event(window, traversal, display, terminal, &events)?
+                self.process_event(window, traversal, display, terminal, &events, config)?
             {
                 return Ok(result);
             }
@@ -129,6 +132,7 @@ impl AppState {
         display: &mut DisplayOptions,
         terminal: &mut Terminal<B>,
         events: &Receiver<Event>,
+        config: &Config,
     ) -> Result<Option<WalkResult>>
     where
         B: Backend,
@@ -148,7 +152,9 @@ impl AppState {
                         traversal,
                         display,
                         terminal,
-                        event)?;
+                        event,
+                        config,
+                    )?;
                     if let Some(res) = res {
                         return Ok(Some(res));
                     }
@@ -165,9 +171,10 @@ impl AppState {
                             let root_index = active_traversal.root_idx;
                             self.recompute_sizes_recursively(traversal, root_index);
                             self.scan = None;
+                            traversal.cost = Some(traversal.start_time.elapsed());
                         }
                         self.update_state_during_traversal(traversal, previous_selection.as_ref(), is_finished);
-                        self.refresh_screen(window, traversal, display, terminal)?;
+                        self.refresh_screen(window, traversal, display, terminal, config)?;
                     };
                 }
             }
@@ -178,7 +185,7 @@ impl AppState {
                 }));
             };
             let result =
-                self.process_terminal_event(window, traversal, display, terminal, event)?;
+                self.process_terminal_event(window, traversal, display, terminal, event, config)?;
             if let Some(processing_result) = result {
                 return Ok(Some(processing_result));
             }
@@ -232,12 +239,13 @@ impl AppState {
         display: &mut DisplayOptions,
         terminal: &mut Terminal<B>,
         event: Event,
+        config: &Config,
     ) -> Result<Option<WalkResult>>
     where
         B: Backend,
     {
-        use crosstermion::crossterm::event::KeyCode::*;
         use FocussedPane::*;
+        use crossterm::event::KeyCode::*;
 
         let key = match event {
             Event::Key(key) if key.kind != KeyEventKind::Release => {
@@ -254,13 +262,28 @@ impl AppState {
 
         let glob_focussed = self.focussed == Glob;
         let mut tree_view = self.tree_view(traversal);
-        let mut handled = true;
-        match key.code {
-            Esc => {
-                if let Some(value) = self.handle_quit(&mut tree_view, window) {
-                    return Ok(Some(value?));
+
+        let esc_navigates_back_in_main =
+            config.keys.esc_navigates_back && key.code == Esc && self.focussed == Main;
+
+        if esc_navigates_back_in_main {
+            self.pending_exit = false;
+            self.exit_node_with_traversal(&tree_view);
+        } else {
+            match (key.code, glob_focussed) {
+                (Esc, _) | (Char('q'), false) => {
+                    if let Some(result) = self.handle_quit(&mut tree_view, window) {
+                        return Ok(Some(result?));
+                    }
+                }
+                _ => {
+                    self.pending_exit = false;
                 }
             }
+        }
+
+        let mut handled = true;
+        match key.code {
             Tab => {
                 self.cycle_focus(window);
             }
@@ -271,12 +294,7 @@ impl AppState {
             Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) && !glob_focussed => {
                 return Ok(Some(WalkResult {
                     num_errors: self.stats.io_errors,
-                }))
-            }
-            Char('q') if !glob_focussed => {
-                if let Some(result) = self.handle_quit(&mut tree_view, window) {
-                    return Ok(Some(result?));
-                }
+                }));
             }
             Char('U') => {
                 self.toggle_ui_split();
@@ -288,7 +306,14 @@ impl AppState {
 
         if !handled {
             match self.focussed {
-                Mark => self.dispatch_to_mark_pane(key, window, &mut tree_view, *display, terminal),
+                Mark => self.dispatch_to_mark_pane(
+                    key,
+                    window,
+                    &mut tree_view,
+                    *display,
+                    terminal,
+                    config,
+                ),
                 Help => {
                     window
                         .help_pane
@@ -299,7 +324,11 @@ impl AppState {
                 Glob => {
                     let glob_pane = window.glob_pane.as_mut().expect("glob pane");
                     match key.code {
-                        Enter => self.search_glob_pattern(&mut tree_view, &glob_pane.input),
+                        Enter => self.search_glob_pattern(
+                            &mut tree_view,
+                            &glob_pane.input,
+                            glob_pane.case,
+                        ),
                         _ => glob_pane.process_events(key),
                     }
                 }
@@ -355,7 +384,7 @@ impl AppState {
                 },
             };
         }
-        self.draw(window, &tree_view, *display, terminal)?;
+        self.draw(window, &tree_view, *display, terminal, config)?;
 
         Ok(None)
     }
@@ -386,10 +415,10 @@ impl AppState {
         });
 
         // If we are displaying the root of the glob search results then cancel the search.
-        if let Some(glob_tree_root) = tree.glob_tree_root {
-            if glob_tree_root == self.navigation().view_root {
-                self.quit_glob_mode(tree, window)
-            }
+        if let Some(glob_tree_root) = tree.glob_tree_root
+            && glob_tree_root == self.navigation().view_root
+        {
+            self.quit_glob_mode(tree, window)
         }
 
         let (paths, remove_root_node, skip_root, use_root_path, index, parent_index) = match what {
@@ -481,9 +510,19 @@ impl AppState {
         }
     }
 
-    fn search_glob_pattern(&mut self, tree_view: &mut TreeView<'_>, glob_pattern: &str) {
+    fn search_glob_pattern(
+        &mut self,
+        tree_view: &mut TreeView<'_>,
+        glob_pattern: &str,
+        case: gix_glob::pattern::Case,
+    ) {
         use FocussedPane::*;
-        match glob_search(tree_view.tree(), self.navigation.view_root, glob_pattern) {
+        match glob_search(
+            tree_view.tree(),
+            self.navigation.view_root,
+            glob_pattern,
+            case,
+        ) {
             Ok(matches) if matches.is_empty() => {
                 self.message = Some("No match found".into());
             }
@@ -534,6 +573,13 @@ impl AppState {
             Main => {
                 if self.glob_navigation.is_some() {
                     self.quit_glob_mode(tree_view, window);
+                } else if window.mark_pane.is_none() && !tree_view.traversal.is_costly() {
+                    // If nothing is selected for deletion, quit instantly
+                    return Some(Ok(WalkResult {
+                        num_errors: self.stats.io_errors,
+                    }));
+                } else if !self.pending_exit {
+                    self.pending_exit = true;
                 } else {
                     return Some(Ok(WalkResult {
                         num_errors: self.stats.io_errors,

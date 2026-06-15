@@ -5,6 +5,264 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.34.0 (2026-02-20)
+
+<csr-id-3dc120fcf193945546ad62f91ae7792c4830c151/>
+<csr-id-a1aaaa59a5a1e7b4cee7affdb0ff4fb2f3da4fc3/>
+
+This upcoming release improves day-to-day usability with a new configuration file.
+
+For users, the main additions are:
+
+- A persistent configuration file for `dua` with keyboard settings under `[keys]`.
+- A new `dua config edit` command to open the configuration in `$EDITOR`.
+- Automatic creation of the configuration directory/file with sensible defaults when editing for the first time.
+
+Configuration defaults and behavior in this release:
+
+- `keys.esc_navigates_back` now defaults to `true`. This is a change from previous versions where it was `false` implicitly.
+
+You are welcome to contribute more settings as you see fit.
+
+### Chore
+
+- <csr-id-3dc120fcf193945546ad62f91ae7792c4830c151/> Replace simplelog with fern and jiff for timestamped logging
+  Note that this changes the log format from
+
+      04:41:37 [INFO]
+
+  to
+
+      [2026-02-06 05:41:32.146 +01:00 INFO src/main.rs:55]
+
+### New Features
+
+ - <csr-id-c72cb529a6191aa76d180d3dff1af2c2bd29e31c/> add `dua` configuration file, with setting for ESC going back only.
+
+### Bug Fixes
+
+ - <csr-id-c7def68283362fae9e34e98bcf0e3f69a9427bf9/> outdated link to NixOS package search
+   Channel 23.11 was for Nov. 2023.
+   This update removes explicitly specifying a channel in the query, defaulting to the current latest stable NixOS nixpkgs channel (at the time of writing `25.11`
+
+### Refactor
+
+- <csr-id-a1aaaa59a5a1e7b4cee7affdb0ff4fb2f3da4fc3/> remove crosstermion and tui-react dependencies
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 17 commits contributed to the release over the course of 45 calendar days.
+ - 45 days passed between releases.
+ - 4 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Merge pull request #320 from tonisives/feat/disable-esc ([`9d2fac5`](https://github.com/Byron/dua-cli/commit/9d2fac55c30d6bb02dfe2961de6183b7b607d6d4))
+    - Prepare changelog for upcoming release ([`9496afe`](https://github.com/Byron/dua-cli/commit/9496afe47e6832152282b65b903177f4ad0e12e4))
+    - Refactor ([`f275703`](https://github.com/Byron/dua-cli/commit/f2757037548f9765e2c8b5ee132fe3417e00cce8))
+    - Apply suggestions from Copilot code review ([`fd3468b`](https://github.com/Byron/dua-cli/commit/fd3468bcb226eef12bd8050c7cfae32b18f7f673))
+    - Add `dua` configuration file, with setting for ESC going back only. ([`c72cb52`](https://github.com/Byron/dua-cli/commit/c72cb529a6191aa76d180d3dff1af2c2bd29e31c))
+    - Merge pull request #318 from Byron/copilot/remove-crosstermion-tui-react ([`7480277`](https://github.com/Byron/dua-cli/commit/74802778a45c8b2f108566c712e3dd733f6ac0a9))
+    - Remove crosstermion and tui-react dependencies ([`a1aaaa5`](https://github.com/Byron/dua-cli/commit/a1aaaa59a5a1e7b4cee7affdb0ff4fb2f3da4fc3))
+    - Merge pull request #317 from musicinmybrain/no-atty ([`6c0203c`](https://github.com/Byron/dua-cli/commit/6c0203c5d3c6744949de92749944c57cf61ad2fc))
+    - Replace atty with standard-library functionality (since Rust 1.70) ([`31aaa0c`](https://github.com/Byron/dua-cli/commit/31aaa0cde6807ffb8351d07b9aa0e4899a128f39))
+    - Merge pull request #315 from Byron/copilot/switch-time-crate-to-jiff ([`017e716`](https://github.com/Byron/dua-cli/commit/017e716c100dd1d2154efe43bf4f5f8f69b7ce8f))
+    - Refactor ([`60812a2`](https://github.com/Byron/dua-cli/commit/60812a27b67e72e0170e2a0d15ecb4313096dfcd))
+    - Replace simplelog with fern and jiff for timestamped logging ([`3dc120f`](https://github.com/Byron/dua-cli/commit/3dc120fcf193945546ad62f91ae7792c4830c151))
+    - Merge pull request #314 from Byron/dependabot/cargo/time-0.3.47 ([`2cb64fb`](https://github.com/Byron/dua-cli/commit/2cb64fb28c9dbc51ca5e283aac3c2225cf8dd1ec))
+    - Bump time from 0.3.44 to 0.3.47 ([`5980a79`](https://github.com/Byron/dua-cli/commit/5980a79157a04644b907a932f9f92cb3c693a324))
+    - Merge pull request #313 from Quoteme/patch-1 ([`abe15b2`](https://github.com/Byron/dua-cli/commit/abe15b21eb1276bdc2893385b63c397386be3129))
+    - Outdated link to NixOS package search ([`c7def68`](https://github.com/Byron/dua-cli/commit/c7def68283362fae9e34e98bcf0e3f69a9427bf9))
+    - Cargo fmt ([`d8db05a`](https://github.com/Byron/dua-cli/commit/d8db05a5ec65412aceea259247cc438d7db220f6))
+</details>
+
+## 2.33.0 (2026-01-05)
+
+### New Features
+
+<csr-id-2f720cf5610c215dc4fbb7cd270fe055fd403b42/>
+
+ - <csr-id-85c7c7218cbb70b0626f430afd03ed819387e9e2/> Add environment variable support for all global arguments
+   - `DUA_THREADS` → `--threads`
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 11 commits contributed to the release over the course of 64 calendar days.
+ - 69 days passed between releases.
+ - 2 commits were understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release dua-cli v2.33.0 ([`1799773`](https://github.com/Byron/dua-cli/commit/179977342a3becfd6bcb9a75cdc21078ed13d7b5))
+    - Merge pull request #309 from Byron/copilot/add-env-support-global-arguments ([`72f149c`](https://github.com/Byron/dua-cli/commit/72f149ce0aa2c88bad71d22d46b864a38362e10a))
+    - Add environment variable support for all global arguments ([`85c7c72`](https://github.com/Byron/dua-cli/commit/85c7c7218cbb70b0626f430afd03ed819387e9e2))
+    - Merge pull request #307 from Byron/copilot/mark-global-arguments-in-clap ([`a2973a6`](https://github.com/Byron/dua-cli/commit/a2973a655e9c33f08d17dcecde1f6ef6827f1182))
+    - Mark shared arguments as global for general accessibility ([`2f720cf`](https://github.com/Byron/dua-cli/commit/2f720cf5610c215dc4fbb7cd270fe055fd403b42))
+    - Merge pull request #300 from drkane/drkane-patch-1 ([`8570c15`](https://github.com/Byron/dua-cli/commit/8570c1543e3cd0983725f6e1938bf3e73442678a))
+    - Add winget instructions to readme - fixes issue #282 ([`ec159b6`](https://github.com/Byron/dua-cli/commit/ec159b63fe522b8e49f5e89a22cf8a5fcf5db55f))
+    - Merge pull request #298 from Byron/updates ([`4bb7ebd`](https://github.com/Byron/dua-cli/commit/4bb7ebd7028f378b3dda6a439403a35f9ce44318))
+    - Cargo update ([`1a38653`](https://github.com/Byron/dua-cli/commit/1a386532a4b2523ecb81c5d876130227ebd8bea9))
+    - Cargo fmt ([`38d985e`](https://github.com/Byron/dua-cli/commit/38d985eebb9c9a791524b7f7835dde01271827a7))
+    - Upgrade the rustc version and switch to edition 2024 ([`ccd0b74`](https://github.com/Byron/dua-cli/commit/ccd0b74b92a21fef65b8ea94667100c71183ebe9))
+</details>
+
+<csr-unknown>
+DUA_FORMAT → --formatDUA_APPARENT_SIZE → --apparent-sizeDUA_COUNT_HARD_LINKS → --count-hard-linksDUA_STAY_ON_FILESYSTEM → --stay-on-filesystemDUA_IGNORE_DIRS → --ignore-dirsDUA_LOG_FILE → --log-fileAdded global = true to all arguments shared between aggregate and interactive subcommandsRemoved duplicate input fields from Interactive and Aggregate subcommandsUpdated main.rs to use opt.input instead of subcommand-specific inputGlobal arguments now work with both subcommands and can be specified before or after the subcommand<csr-unknown/>
+
+## 2.32.2 (2025-10-28)
+
+### Bug Fixes
+
+ - <csr-id-847af46ba643c53b8d5aa7a9a3abd9ff37032311/> don't let 'q' quit instantly if it's still collecting files.
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 2 commits contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release dua-cli v2.32.2 ([`6e91054`](https://github.com/Byron/dua-cli/commit/6e91054b5236c567fdf4bf8b75f74c4934f2a6c6))
+    - Don't let 'q' quit instantly if it's still collecting files. ([`847af46`](https://github.com/Byron/dua-cli/commit/847af46ba643c53b8d5aa7a9a3abd9ff37032311))
+</details>
+
+## 2.32.1 (2025-10-28)
+
+'q' to quit is now more usable as it will insta-quit if the traversal took less than 10s and
+if nothing is still marked for deletion.
+
+This makes it easy to use in 'quick-view' scenarios.
+
+### Bug Fixes
+
+ - <csr-id-d769de92b7abc842dab45141750e809b1141ba26/> instantly quit when no items marked for deletion
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 7 commits contributed to the release.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release dua-cli v2.32.1 ([`d55602a`](https://github.com/Byron/dua-cli/commit/d55602a515e9c888243fedbc2f07f54bb2d2cc1c))
+    - Prepare next release changelog ([`fb8571f`](https://github.com/Byron/dua-cli/commit/fb8571fec263a27a03700dacdf1d1f51e0e844e7))
+    - Merge pull request #297 from Byron/copilot/fix-instant-quit-on-q ([`938ae33`](https://github.com/Byron/dua-cli/commit/938ae33195498ab3451d83dac90eeb80302b0d12))
+    - Only quit immediately if the traversal didn't take too long. ([`7f27170`](https://github.com/Byron/dua-cli/commit/7f271701240d89799b3dd6a8f95cc613dd5c1340))
+    - Update dependencies ([`d0f66d6`](https://github.com/Byron/dua-cli/commit/d0f66d6dcb859c4a27d30dc74da60eda1b5fb758))
+    - Refactor ([`b710cb1`](https://github.com/Byron/dua-cli/commit/b710cb164615b6c68416ce8bb882e41ea12bd0df))
+    - Instantly quit when no items marked for deletion ([`d769de9`](https://github.com/Byron/dua-cli/commit/d769de92b7abc842dab45141750e809b1141ba26))
+</details>
+
+## 2.32.0 (2025-09-15)
+
+### New Features
+
+ - <csr-id-bbe368f3c33cf58625e0f2a24f198ee8a6f836a6/> `Ctrl+f` in the glob prompt now toggles the mode from case-insensitive to sensitive.
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 5 commits contributed to the release over the course of 43 calendar days.
+ - 43 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release dua-cli v2.32.0 ([`3f364c1`](https://github.com/Byron/dua-cli/commit/3f364c1c44a7d195eacda453d4da23c3c60fc632))
+    - Merge pull request #293 from Byron/copilot/fix-2a5bb691-5ca0-4cf5-af1c-895f4fcb1f06 ([`91bc45d`](https://github.com/Byron/dua-cli/commit/91bc45da799e7bd41d75f71a67091c6537de7ef1))
+    - `Ctrl+f` in the glob prompt now toggles the mode from case-insensitive to sensitive. ([`bbe368f`](https://github.com/Byron/dua-cli/commit/bbe368f3c33cf58625e0f2a24f198ee8a6f836a6))
+    - Implement case-sensitive glob search with '^f' shortcut ([`32ab50f`](https://github.com/Byron/dua-cli/commit/32ab50f5b91cb9e4b4e4fa342d6a36adc944c14e))
+    - See if the windows-2022 image will work for us. ([`7abf86a`](https://github.com/Byron/dua-cli/commit/7abf86a7c214452425bacb8290b0436119f795da))
+</details>
+
+## 2.31.0 (2025-08-02)
+
+This release prominently adds a prompt that shows before quitting the app. When you pressed esc or q, the status bar will show the prompt first. To really quit, you need to press esc or q again. You can also cancel the quit operation by pressing any key else. Meanwhile, ctrl-c still quits the app directly since it's a combination key.
+
+That way, `dua` will not cause users to accidentally quit the app when they only want to dismiss some other panels. It's especially frustrating if the scan took a long time
+
+### New Features
+
+ - <csr-id-f3c9bf65b97ac029d444e32fe23f5976b0c480b2/> prompt before quitting
+   This release prominently adds a prompt that shows before quitting the app. When you pressed esc or q, the status bar will show the prompt first. To really quit, you need to press esc or q again. You can also cancel the quit operation by pressing any key else. Meanwhile, ctrl-c still quits the app directly since it's a combination key.
+   
+   That way, `dua` will not cause users to accidentally quit the app when they only want to dismiss some other panels. It's especially frustrating if the scan took a long time.
+
+### Commit Statistics
+
+<csr-read-only-do-not-edit/>
+
+ - 12 commits contributed to the release.
+ - 83 days passed between releases.
+ - 1 commit was understood as [conventional](https://www.conventionalcommits.org).
+ - 0 issues like '(#ID)' were seen in commit messages
+
+### Thanks Clippy
+
+<csr-read-only-do-not-edit/>
+
+[Clippy](https://github.com/rust-lang/rust-clippy) helped 1 time to make code idiomatic. 
+
+### Commit Details
+
+<csr-read-only-do-not-edit/>
+
+<details><summary>view details</summary>
+
+ * **Uncategorized**
+    - Release dua-cli v2.31.0 ([`5daa8d5`](https://github.com/Byron/dua-cli/commit/5daa8d5661eef1269c6f71fe0a20da9f3f1fefaf))
+    - Bump minor version and add changelog notes ([`d238dbb`](https://github.com/Byron/dua-cli/commit/d238dbb12b8491393a41ff5da425497f04c343d0))
+    - Update dependencies ([`39ca5e6`](https://github.com/Byron/dua-cli/commit/39ca5e616d28765a79a619015c4f259b82f1ed5f))
+    - Prompt before quitting ([`f3c9bf6`](https://github.com/Byron/dua-cli/commit/f3c9bf65b97ac029d444e32fe23f5976b0c480b2))
+    - Prompt user before quitting ([`b096939`](https://github.com/Byron/dua-cli/commit/b09693973a34152a15f2dd599ff48ffbd1e8965e))
+    - Re-introduce io::ErrorKind matching. ([`f93f120`](https://github.com/Byron/dua-cli/commit/f93f1205fa4fea33016a66645c8b5ec5c25a4f5c))
+    - Merge pull request #288 from fgimian/completions ([`1b7f535`](https://github.com/Byron/dua-cli/commit/1b7f535eb25be4fba4f64efb21efdd74895dbce0))
+    - Thanks clippy ([`f983e60`](https://github.com/Byron/dua-cli/commit/f983e6080371ed190ae1b3884e4034812d3d528c))
+    - Refactor ([`a0f78b2`](https://github.com/Byron/dua-cli/commit/a0f78b2a9d35097f65d3debb0eeffae8dc15e893))
+    - Add the ability to generate shell completions ([`e919541`](https://github.com/Byron/dua-cli/commit/e9195412c08e47fc518b69b57116754fa2fa5a3e))
+    - Merge pull request #285 from kianmeng/fix-typos ([`63b129b`](https://github.com/Byron/dua-cli/commit/63b129b1addbac7f4b238529875d88062ab68dfb))
+    - Fix typos ([`d9d643e`](https://github.com/Byron/dua-cli/commit/d9d643e63dc7996d88eb54a9dc8bafbf7198c69f))
+</details>
+
 ## 2.30.1 (2025-05-10)
 
 In this release, the size of directories is also taken into consideration, for more realistic sizes similar to what `du` does.
@@ -13,7 +271,7 @@ In this release, the size of directories is also taken into consideration, for m
 
 <csr-read-only-do-not-edit/>
 
- - 6 commits contributed to the release.
+ - 7 commits contributed to the release.
  - 0 commits were understood as [conventional](https://www.conventionalcommits.org).
  - 0 issues like '(#ID)' were seen in commit messages
 
@@ -30,6 +288,7 @@ In this release, the size of directories is also taken into consideration, for m
 <details><summary>view details</summary>
 
  * **Uncategorized**
+    - Release dua-cli v2.30.1 ([`ebf906a`](https://github.com/Byron/dua-cli/commit/ebf906af390c330aa5983ba0699127a6eb0e16d5))
     - Prepare changelog for next release. ([`4ed0acf`](https://github.com/Byron/dua-cli/commit/4ed0acfe47836a7dd0dd2e22998c7ea227555fe2))
     - Merge pull request #284 from joehasson/feat/include-directory-inodes-in-size-calculations ([`b5b411b`](https://github.com/Byron/dua-cli/commit/b5b411b2757d61ebdd64f2254cac002234ed1d5d))
     - Include directory inode in directory size aggregation ([`a93b28e`](https://github.com/Byron/dua-cli/commit/a93b28ead02714bb80cda296e4b4ad2a1248ba0e))
@@ -56,7 +315,7 @@ In this release, the size of directories is also taken into consideration, for m
 
 ### Style
 
- - <csr-id-c1dc1b26735279e976d36597bfe45eb3557458fe/> simplify some statements for readability
+- <csr-id-c1dc1b26735279e976d36597bfe45eb3557458fe/> simplify some statements for readability
 
 ### Commit Statistics
 
@@ -103,8 +362,8 @@ In this release, the size of directories is also taken into consideration, for m
 
 ### Other
 
- - <csr-id-44d25a64475ff861875fe97c4612356eb697f4bf/> update actions/upload-artifact to v4
-   The release workflow failed because actions/upload-artifact@v1 doesn't work anymore.
+- <csr-id-44d25a64475ff861875fe97c4612356eb697f4bf/> update actions/upload-artifact to v4
+  The release workflow failed because actions/upload-artifact@v1 doesn't work anymore.
 
 ### Commit Statistics
 
@@ -136,17 +395,17 @@ In this release, the size of directories is also taken into consideration, for m
 
 ### Chore
 
- - <csr-id-25a6ad73a6571bffe7fac56c61ff2e52ccda0b53/> upgrade `gix-glob` and `trash`
+- <csr-id-25a6ad73a6571bffe7fac56c61ff2e52ccda0b53/> upgrade `gix-glob` and `trash`
 
 ### Other
 
- - <csr-id-c66e585ec73707d113d481ae2627187c9071539d/> add x-cmd install steps
-   Hi, I've added instructions on how to install dua using x-cmd to the README file.
-   - [x-cmd](https://www.x-cmd.com/) is a **toolbox for Posix Shell**, offering a lightweight package manager built using shell and awk.
-   ```sh
-   x env use dua
-   ```
- - <csr-id-fa203b1b955b896d989eb46e72f13fd5e6cd6120/> Auto submit new manifest to winget-pkgs
+- <csr-id-c66e585ec73707d113d481ae2627187c9071539d/> add x-cmd install steps
+  Hi, I've added instructions on how to install dua using x-cmd to the README file.
+  - [x-cmd](https://www.x-cmd.com/) is a **toolbox for Posix Shell**, offering a lightweight package manager built using shell and awk.
+  ```sh
+  x env use dua
+  ```
+- <csr-id-fa203b1b955b896d989eb46e72f13fd5e6cd6120/> Auto submit new manifest to winget-pkgs
 
 ### Commit Statistics
 
@@ -215,7 +474,7 @@ This is a maintenance release without user-facing changes.
 
 ### Other
 
- - <csr-id-f0b9a8e07b24d963116da4dfaa3338a4d4e8a3bf/> update version in install instructions
+- <csr-id-f0b9a8e07b24d963116da4dfaa3338a4d4e8a3bf/> update version in install instructions
 
 ### Commit Statistics
 
@@ -539,7 +798,7 @@ This is a maintenance release without user-facing changes.
 
 ### Chore
 
- - <csr-id-e992659db17f275b48e555afd6b18df737401f01/> remove obsolete `tui-shared` feature
+- <csr-id-e992659db17f275b48e555afd6b18df737401f01/> remove obsolete `tui-shared` feature
 
 ### New Features
 
@@ -567,19 +826,19 @@ This is a maintenance release without user-facing changes.
 
 ### Other
 
- - <csr-id-729e7e92410b138f2778ef70f0f59a439028ac29/> clarify that (and why) `termion` isn't supported anymore in README.md
-   This was triggered by `crossterm` essentially breaking event handling
-   on Windows, which is when I decided to just use the seemingly more
-   powerful crossterm events natively.
-   
-   Overall, this made event handling more complex, but also allows users of
-   `crosstermion` (the crate that actually dropped `termion` support) to
-   write even more interactive applications without worrying about
-   the always out-of-date intermediate layer.
-   
-   Interestingly, the `crosstermion` crate adds some useful features around event handling,
-   but also optimizes build times thanks to `termion`, which is something that
-   on my current machine I don't notice anymore, so the value of it diminished greatly.
+- <csr-id-729e7e92410b138f2778ef70f0f59a439028ac29/> clarify that (and why) `termion` isn't supported anymore in README.md
+  This was triggered by `crossterm` essentially breaking event handling
+  on Windows, which is when I decided to just use the seemingly more
+  powerful crossterm events natively.
+
+  Overall, this made event handling more complex, but also allows users of
+  `crosstermion` (the crate that actually dropped `termion` support) to
+  write even more interactive applications without worrying about
+  the always out-of-date intermediate layer.
+
+  Interestingly, the `crosstermion` crate adds some useful features around event handling,
+  but also optimizes build times thanks to `termion`, which is something that
+  on my current machine I don't notice anymore, so the value of it diminished greatly.
 
 ### Commit Statistics
 
@@ -684,10 +943,10 @@ This is a maintenance release without user-facing changes.
 
 This release adds long-awaited globbing support, just hit the `/` key to get started.
 
-You want to find the biggest `.git` directories? Just type `/.git/<enter>` and you are done. 
-What about all target directories? Just write `target/` to the glob search prompt and it's done. 
-What about all directories ending in `*.rs/`? 
-Oh, by accident you typed `*.rs` and now there is a list of a quarter million of entries? No problem, 
+You want to find the biggest `.git` directories? Just type `/.git/<enter>` and you are done.
+What about all target directories? Just write `target/` to the glob search prompt and it's done.
+What about all directories ending in `*.rs/`?
+Oh, by accident you typed `*.rs` and now there is a list of a quarter million of entries? No problem,
 it's near instant even with millions of files to search or hundreds of thousands to display.
 
 > Note that glob-mode can be exited only by pressing `ESC` when the glob prompt has focus.
@@ -1076,11 +1335,11 @@ Happy holidays!
 
 ### Other
 
- - <csr-id-fe956ca6f244613762bb48de79eac1f6fa399e1b/> don't recurse on cross-device filesystems
-   Like it says in the title. Right now, if you pass `-x`, dua doesn't
-   count files on other devices, but it still enumerates them. However, a
-   good reason to use `-x` is if you have network mounts that are slow, so
-   this fixes that.
+- <csr-id-fe956ca6f244613762bb48de79eac1f6fa399e1b/> don't recurse on cross-device filesystems
+  Like it says in the title. Right now, if you pass `-x`, dua doesn't
+  count files on other devices, but it still enumerates them. However, a
+  good reason to use `-x` is if you have network mounts that are slow, so
+  this fixes that.
 
 ### Commit Statistics
 
@@ -1215,13 +1474,13 @@ to something without color by default thanks to the upgrade to `clap` 4.
 
 ### Chore
 
- - <csr-id-946806e7390799807361562b038fb12eeb2ddf11/> replace `colored` dependency with `owo-colors`.
-   The latter provide zero-allocation coloring in the terminal and
-   may improve compile times a little.
+- <csr-id-946806e7390799807361562b038fb12eeb2ddf11/> replace `colored` dependency with `owo-colors`.
+  The latter provide zero-allocation coloring in the terminal and
+  may improve compile times a little.
 
 ### Refactor
 
- - <csr-id-d3fa946029ef44e5032762ff265180c23a629316/> colored path printing; fix size column format
+- <csr-id-d3fa946029ef44e5032762ff265180c23a629316/> colored path printing; fix size column format
 
 ### Commit Statistics
 
@@ -1269,10 +1528,10 @@ to something without color by default thanks to the upgrade to `clap` 4.
 
 ### Other
 
- - <csr-id-6a636d542594a76ef8b2faf2ec6347e4c8cb6b38/> switch from colored to owo-colors
-   owo-colors is well-maintained, zero-allocation, zero-dependencies crate
-   for terminal colors. Also it works on any type that implements Display trait,
-   not just on strings.
+- <csr-id-6a636d542594a76ef8b2faf2ec6347e4c8cb6b38/> switch from colored to owo-colors
+  owo-colors is well-maintained, zero-allocation, zero-dependencies crate
+  for terminal colors. Also it works on any type that implements Display trait,
+  not just on strings.
 
 ### New Features
 
@@ -1428,8 +1687,8 @@ thanks to an upgrade in the `open` crate which powers this feauture.
 
 ### Bug Fixes
 
- - Show all possible information even if one input path could not be read. Previously it would fail
-   entirely without printing anything useful but a relatively non-descript error message.
+- Show all possible information even if one input path could not be read. Previously it would fail
+  entirely without printing anything useful but a relatively non-descript error message.
  - <csr-id-75b3eed98f14d918f474f73caa3cdedd5af927ad/> broken or non-existing root path will still print the valid results.
    Previously it would fail completely without printing anything.
  - <csr-id-8742232a15c2bdd608c2e2c731a786c59c7d58dc/> Open interactive mode even if one of the input paths can't be read.
@@ -1542,9 +1801,9 @@ the first line of a report was too short to cover it.
 
 This commit should resolve these:
 
-* The 64-bit atomic counter is replaced with an 8-bit AtomicBool
-* All printing is controlled from the main thread
-* The first line is cleared prior to printing a report
+- The 64-bit atomic counter is replaced with an 8-bit AtomicBool
+- All printing is controlled from the main thread
+- The first line is cleared prior to printing a report
 
 The only notable drawback I see with this approach is that progress
 reporting can sometimes be delayed, since the display is only evaluated
@@ -1794,7 +2053,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.7 (2021-09-18)
 
-* Fix deletion which broke with Rust 1.55, for those who are compiling the tool themselves.
+- Fix deletion which broke with Rust 1.55, for those who are compiling the tool themselves.
 
 ### Commit Statistics
 
@@ -1819,8 +2078,8 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.6 (2021-08-22)
 
-* Support for arrow keys as well as Home & End. The help pane was updated to reflect these changes.
-* More readable information on how to delete or trash files in the mark pane.
+- Support for arrow keys as well as Home & End. The help pane was updated to reflect these changes.
+- More readable information on how to delete or trash files in the mark pane.
 
 ### Commit Statistics
 
@@ -1850,7 +2109,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.5 (2021-08-16)
 
-* Fix installation via `cargo install dua-cli`. Please note that it might break again as it still depends on the unsable `clap-3 beta 4`. Even when pinning it breakage is possible as its dependencies itself aren't pinned.
+- Fix installation via `cargo install dua-cli`. Please note that it might break again as it still depends on the unsable `clap-3 beta 4`. Even when pinning it breakage is possible as its dependencies itself aren't pinned.
 
 ### Commit Statistics
 
@@ -1877,8 +2136,8 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.4 (2021-08-05)
 
-* upgrade depencies
-* upgrade to tui 0.16
+- upgrade depencies
+- upgrade to tui 0.16
 
 ### Commit Statistics
 
@@ -1909,7 +2168,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.3 (2021-07-25)
 
-* upgrade `open` crate to v2
+- upgrade `open` crate to v2
 
 ### Commit Statistics
 
@@ -1933,9 +2192,9 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.2 (2021-07-14)
 
-* `Ctrl-T` to trash (instead of removal) is now an optional default feature, allowing it to be
+- `Ctrl-T` to trash (instead of removal) is now an optional default feature, allowing it to be
   disabled on FreeBSD which isn't currently supported.
-* Update dependencies
+- Update dependencies
 
 ### Commit Statistics
 
@@ -1967,9 +2226,9 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.14.1 (2021-06-30)
 
-* Pressing `ctrl+t` in the mark pane now trashes entries instead of deleting them. Not only does that make
+- Pressing `ctrl+t` in the mark pane now trashes entries instead of deleting them. Not only does that make
   'deletion' reversible but it makes removal of the entry faster in many cases as well.
-* updated dependencies
+- updated dependencies
 
 ### Commit Statistics
 
@@ -1999,7 +2258,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ### Other
 
- - <csr-id-02dd1b72c8fe741fb153094fdb08816f7f593c6f/> deduplicate code
+- <csr-id-02dd1b72c8fe741fb153094fdb08816f7f593c6f/> deduplicate code
 
 ### Commit Statistics
 
@@ -2036,12 +2295,12 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 <csr-id-02dd1b72c8fe741fb153094fdb08816f7f593c6f/>
 
-* Allow usage of the feature introduced in v2.13 by writing the TUI to stderr instead of stdout.
+- Allow usage of the feature introduced in v2.13 by writing the TUI to stderr instead of stdout.
   That way the output can be redirected.
 
 ### Other
 
- - <csr-id-02dd1b72c8fe741fb153094fdb08816f7f593c6f/> deduplicate code
+- <csr-id-02dd1b72c8fe741fb153094fdb08816f7f593c6f/> deduplicate code
 
 ### Commit Statistics
 
@@ -2066,7 +2325,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.13.0 (2021-06-08)
 
-* Print remaining marked paths upon exit on stdout. This may help to use `dua i` with other programs
+- Print remaining marked paths upon exit on stdout. This may help to use `dua i` with other programs
   who want to process the marked paths on their own.
 
 ### Commit Statistics
@@ -2091,7 +2350,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.12.2 (2021-06-07)
 
-* Prepare for release of new Apple hardware and be more specific when auto-configuring the correct amount of threads.
+- Prepare for release of new Apple hardware and be more specific when auto-configuring the correct amount of threads.
   Instead an error message will be printed to inform that the given CPU brand isn't configurable yet.
 
 ### Commit Statistics
@@ -2120,7 +2379,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 ## v2.12.1 (2021-05-30)
 
-* Fixed bug that would cause `dua` to unconditionally sleep for 1 second. This sleep was intended for a spawned thread,
+- Fixed bug that would cause `dua` to unconditionally sleep for 1 second. This sleep was intended for a spawned thread,
   but it slipped into the main thread.
 
 ### Commit Statistics
@@ -2150,7 +2409,7 @@ Make `dua` less prone to hanging by ignoring certain special directories on linu
 
 YANKED.
 
-* Add minimal progress for when `dua` invocations take longer than 1 second
+- Add minimal progress for when `dua` invocations take longer than 1 second
 
 ### Commit Statistics
 
@@ -2183,8 +2442,8 @@ YANKED.
 
 ## v2.11.3 (2021-05-09)
 
-* re-add arm builds
-* dependency updates (including tui 0.15)
+- re-add arm builds
+- dependency updates (including tui 0.15)
 
 ### Commit Statistics
 
@@ -2210,7 +2469,7 @@ YANKED.
 
 ## v2.11.2 (2021-05-03)
 
-* dependency updates (including tui 0.15)
+- dependency updates (including tui 0.15)
 
 ### Commit Statistics
 
@@ -2256,12 +2515,12 @@ YANKED.
 
 <csr-id-59315b7c63b7328fa70bfe5fc43fdbe9dc5f92e7/>
 
-* The `-x/--stay-on-filesystem` flag is now respected for multiple root paths, as in `dua -x
-  path-FS1/ path-FS2/`, as such `dua` will stay in FS1 if the CWD is in FS1.
+- The `-x/--stay-on-filesystem` flag is now respected for multiple root paths, as in `dua -x
+path-FS1/ path-FS2/`, as such `dua` will stay in FS1 if the CWD is in FS1.
 
 ### Other
 
- - <csr-id-59315b7c63b7328fa70bfe5fc43fdbe9dc5f92e7/> add MacPorts install instructions
+- <csr-id-59315b7c63b7328fa70bfe5fc43fdbe9dc5f92e7/> add MacPorts install instructions
 
 ### Commit Statistics
 
@@ -2290,12 +2549,13 @@ YANKED.
 
 ### Features
 
-* Add binding capital 'H' to go to the top of any pane/list
-* Add binding capital 'G' to go to the bottom of any pane/list
+- Add binding capital 'H' to go to the top of any pane/list
+- Add binding capital 'G' to go to the bottom of any pane/list
 
 ### Fixes
-* Without user input during `dua i [<multiple paths>]` the top-most entry will remain selected.
-* Avoid stale frame at the end of traversal in interactive sessions when there is no user input.
+
+- Without user input during `dua i [<multiple paths>]` the top-most entry will remain selected.
+- Avoid stale frame at the end of traversal in interactive sessions when there is no user input.
 
 ### Commit Statistics
 
@@ -2336,7 +2596,7 @@ It looks like the latest BETAs of clap removed setting the version implicitly.
 
 ### Other
 
- - <csr-id-9384cdb5b95e5260f46ccd23e7ca276304190a34/> fix typo
+- <csr-id-9384cdb5b95e5260f46ccd23e7ca276304190a34/> fix typo
 
 ### Commit Statistics
 
@@ -2402,7 +2662,7 @@ with dua-cli.
 
 ### Other
 
- - <csr-id-dc100c8b4a838c92f39d5a67da7eea06e7dec9af/> bump itertools 0.9.0 -> 0.10.0
+- <csr-id-dc100c8b4a838c92f39d5a67da7eea06e7dec9af/> bump itertools 0.9.0 -> 0.10.0
 
 ### Commit Statistics
 
@@ -2426,6 +2686,8 @@ with dua-cli.
     - Dependency update ([`420f1f6`](https://github.com/Byron/dua-cli/commit/420f1f677b77acd73729df19edf2849c65d8d33b))
     - Increase  crate size limit ([`041e218`](https://github.com/Byron/dua-cli/commit/041e218c47f77ea60e982a4e92209e5574cf6336))
 </details>
+
+## v0.14.0 (2021-01-04)
 
 ## v2.10.7 (2020-12-16)
 
@@ -2462,15 +2724,11 @@ On all other systems, the default number of threads did not change.
     - Dependency update ([`848c3ed`](https://github.com/Byron/dua-cli/commit/848c3edc45ef645f8403673dfca9764f62ecb51e))
 </details>
 
-## v2.10.6
-
-Fix `dua -h` usage string.
-
 ## v2.10.5 (2020-11-15)
 
 Dependency update.
 
-* upgrade to TUI v0.13.0
+- upgrade to TUI v0.13.0
 
 ### Commit Statistics
 
@@ -2520,6 +2778,10 @@ Dependency update.
     - See if ARM works again ([`db47b37`](https://github.com/Byron/dua-cli/commit/db47b375db9ee8a94aec40d6c0ac430085f6bab1))
 </details>
 
+## v0.13.0 (2020-11-15)
+
+## v0.0.1 (2020-10-26)
+
 ## v2.10.3 (2020-10-15)
 
 Dependency update.
@@ -2551,6 +2813,8 @@ Should fix [this issue](https://github.com/Byron/dua-cli/issues/66)
     - Dependency update ([`56a365b`](https://github.com/Byron/dua-cli/commit/56a365b5ee21f09bb80afb32d0184b150f16f4c2))
     - Dependency update ([`dadb3fe`](https://github.com/Byron/dua-cli/commit/dadb3fe70d3bb15a5cc1f2e5d8d0307faaa9d702))
 </details>
+
+## v0.12.0 (2020-09-28)
 
 ## v2.10.2 (2020-07-27)
 
@@ -2609,7 +2873,7 @@ See [this PR](https://github.com/Byron/dua-cli/pull/62) for reference.
 
 Minor improvements of looks; improved windows support.
 
-* previously in interactive mode on Windows, directory sizes would appear as 0 bytes in size. This is now fixed!
+- previously in interactive mode on Windows, directory sizes would appear as 0 bytes in size. This is now fixed!
 
 ### Commit Statistics
 
@@ -2662,11 +2926,18 @@ Minor improvements of looks; improved windows support.
     - Update dependencies ([`69edd7c`](https://github.com/Byron/dua-cli/commit/69edd7c1b109a443565c6fd9d2e23d2e030031dd))
 </details>
 
+## v0.10.1 (2020-07-22)
+
+## v0.10.0 (2020-07-22)
+
+## v0.4.1 (2020-07-10)
+
 ## v2.9.1 (2020-07-07)
 
 Globs for Windows; fixed handling of colors.
-* On widnows, `dua` will now expand glob patterns by itself as this capability is not implemented by shells `dua` can now run in.
-* A bug was discovered that could cause `dua a` invocation to now show paths behind their size in an incorrect attempt to not print with color.
+
+- On widnows, `dua` will now expand glob patterns by itself as this capability is not implemented by shells `dua` can now run in.
+- A bug was discovered that could cause `dua a` invocation to now show paths behind their size in an incorrect attempt to not print with color.
 
 ### Commit Statistics
 
@@ -2694,8 +2965,8 @@ Globs for Windows; fixed handling of colors.
 
 Full windows support!
 
-* On Windows, we will now build using `crossterm`, which was greatly facilitated by `crosstermion`.
-* On Unix systems, the backend is still `termion`.
+- On Windows, we will now build using `crossterm`, which was greatly facilitated by `crosstermion`.
+- On Unix systems, the backend is still `termion`.
 
 ### Commit Statistics
 
@@ -2737,7 +3008,7 @@ Full windows support!
 
 ## v2.8.2 (2020-07-02)
 
-* Switch back to `clap` from `argh` to support non-UTF-8 encoded paths to be passed to dua
+- Switch back to `clap` from `argh` to support non-UTF-8 encoded paths to be passed to dua
 
 I hope that `argh` or an alternative will one day consider supporting os-strings, as it would in theory be an issue
 for anyone who passes paths to their command-line tool.
@@ -2764,7 +3035,7 @@ for anyone who passes paths to their command-line tool.
 
 ## v2.8.1 (2020-07-02)
 
-* Switch from deprecated `failure` to `anyhow` to reduce compile times a little and binary size by 130kb.
+- Switch from deprecated `failure` to `anyhow` to reduce compile times a little and binary size by 130kb.
 
 ### Commit Statistics
 
@@ -2787,7 +3058,7 @@ for anyone who passes paths to their command-line tool.
 
 ## v2.8.0 (2020-07-02)
 
-* Switched from `clap` to `argh` for a 300kb reduction in binary size and 1 minute smaller compile times.
+- Switched from `clap` to `argh` for a 300kb reduction in binary size and 1 minute smaller compile times.
 
 ### Commit Statistics
 
@@ -2811,8 +3082,8 @@ for anyone who passes paths to their command-line tool.
 
 ## v2.7.0 (2020-07-02)
 
-* [Support for extremely large][issue-58], zeta byte scale, files or filesystem traversals.
-* [Fix possibly incorrect handling of hard links][pr-57] in traversals spanning multiple devices.
+- [Support for extremely large][issue-58], zeta byte scale, files or filesystem traversals.
+- [Fix possibly incorrect handling of hard links][pr-57] in traversals spanning multiple devices.
 
 Both changes were enabled by [@Freaky](https://github.com/Freaky) whom I hereby thank wholeheartedly :).
 
@@ -2843,7 +3114,7 @@ Both changes were enabled by [@Freaky](https://github.com/Freaky) whom I hereby 
 
 ## v2.6.1 (2020-05-31)
 
-* quit without delay from interactive mode after `dua` was opened on huge directories trees. 
+- quit without delay from interactive mode after `dua` was opened on huge directories trees.
   See [this commit](https://github.com/Byron/dua-cli/commit/91aade36c71e4e14167030b6ec8c3c13dcdc1b2b) for details.
 
 ### Commit Statistics
@@ -2893,8 +3164,8 @@ Both changes were enabled by [@Freaky](https://github.com/Freaky) whom I hereby 
 
 ## v2.6.0 (2020-05-04)
 
-* Use `x` to only mark entries for deletion, instead of toggling them.
-* Add `-x` | `--stay-on-filesystem` flag to force staying on the file system the root is on, similar to `-x` in the venerable `du` tool.
+- Use `x` to only mark entries for deletion, instead of toggling them.
+- Add `-x` | `--stay-on-filesystem` flag to force staying on the file system the root is on, similar to `-x` in the venerable `du` tool.
 
 ### Commit Statistics
 
@@ -2954,6 +3225,8 @@ Much more nuanced percentage bars for a more precise visualization of space cons
     - Disable default features for tui in tui-react ([`8467a49`](https://github.com/Byron/dua-cli/commit/8467a49796e56a874837dc810dc2e534ec03f0a3))
     - Clippy ([`70b043a`](https://github.com/Byron/dua-cli/commit/70b043abfd4a5765b4966cff65a7b67c518528ef))
 </details>
+
+## v0.3.0 (2020-04-03)
 
 ## v2.4.1 (2020-03-30)
 
@@ -3034,11 +3307,13 @@ Full interaction during scanning phase; add inline-help for better UX.
     - Merge remote-tracking branch 'origin/master' ([`f5a1ff2`](https://github.com/Byron/dua-cli/commit/f5a1ff2fbb3aeaf6a9afb730a39a8c8abea454c4))
 </details>
 
+## v0.2.2 (2020-03-29)
+
 ## v2.3.9 (2020-03-27)
 
 Do not follow symlinks unless it's the only root path to follow.
 
-This brutally fixes an issue where symbolics links are honored when they are placed in the current working directory, as internally `dua` will 
+This brutally fixes an issue where symbolics links are honored when they are placed in the current working directory, as internally `dua` will
 treat each cwd directory entry as individual root path.
 
 ### Commit Statistics
@@ -3108,7 +3383,7 @@ Upgrade to filesize 0.2.0 from 0.1.0; update dependency versions
 
 ### Other
 
- - <csr-id-45d1ef31181cd9b430d855a4fe23550ea97e685e/> Update Fedora instructions
+- <csr-id-45d1ef31181cd9b430d855a4fe23550ea97e685e/> Update Fedora instructions
 
 ### Commit Statistics
 
@@ -3284,7 +3559,7 @@ Include .md files in Crate, update dependencies.
 Show size on disk by default; Dependency Update.
 
 Thanks to [this PR](https://github.com/Byron/dua-cli/pull/37), hard links are now not counted anymore.
-The `-l` flag will count hard links as it did before. 
+The `-l` flag will count hard links as it did before.
 
 And of course, this has no noticable performance impact.
 
@@ -3438,9 +3713,9 @@ _Technical Notes_: Handling symbolic links properly is impossible without usage 
 ## v2.1.10 (2019-07-25)
 
 Compatibility with light terminals.
- 
-* the TUI is now usable on light terminals, and highlighting is more consistent. Thank you, @vks!
-* Fixes misaligned columns when displaying '100.00%' alongside other rows by displaying `100.0%` instead. Thanks, @vks, for pointing it out.
+
+- the TUI is now usable on light terminals, and highlighting is more consistent. Thank you, @vks!
+- Fixes misaligned columns when displaying '100.00%' alongside other rows by displaying `100.0%` instead. Thanks, @vks, for pointing it out.
 
 ### Commit Statistics
 
@@ -3471,9 +3746,9 @@ Compatibility with light terminals.
 
 Improved handling of broken symlinks.
 
-* during symlink deletion, now broken symlinks will be deleted as expected.
-* always return to the previous terminal screen so the TUI doesn't stick to the current one.
-* display broken symlinks on the first level of iteration.
+- during symlink deletion, now broken symlinks will be deleted as expected.
+- always return to the previous terminal screen so the TUI doesn't stick to the current one.
+- display broken symlinks on the first level of iteration.
 
 ### Commit Statistics
 
@@ -3648,8 +3923,8 @@ Fixes [#14](https://github.com/Byron/dua-cli/issues/14)
 
 Bug fixes and improvements.
 
-* Performance fix when showing folders with large amounts of files
-* Display of amount of entries per directory
+- Performance fix when showing folders with large amounts of files
+- Display of amount of entries per directory
 
 ### Commit Statistics
 
@@ -3673,8 +3948,8 @@ Bug fixes and improvements.
 
 Bug fixes and improvements.
 
-* Better information about deletion progress
-* removal of windows support
+- Better information about deletion progress
+- removal of windows support
 
 ### Commit Statistics
 
@@ -3699,10 +3974,10 @@ Bug fixes and improvements.
 
 Bug fixes and improvements.
 
-* windows support (never actually worked), usage of crossterm is difficult thanks to completely
+- windows support (never actually worked), usage of crossterm is difficult thanks to completely
   different input handling.
-* additional key-bindings
-* auto-restore previous selection in each visited directory
+- additional key-bindings
+- auto-restore previous selection in each visited directory
 
 ### Commit Statistics
 
@@ -3731,8 +4006,8 @@ Bug fixes and improvements.
 
 Bug fixes and improvements.
 
-* fix typo in title 
-* better display of IO-Errors in aggregate mode
+- fix typo in title
+- better display of IO-Errors in aggregate mode
 
 ### Commit Statistics
 
@@ -3778,35 +4053,36 @@ A sub-command bringing up a terminal user interface to allow drilling into direc
 
 ### Other
 
- - <csr-id-c67abaec3c573dbfaf31be22693220a49a67b262/> first test to fully verify deletion
- - <csr-id-a128eb4a6e675f148a203ac66de075ee0c0def1c/> Move parts of the tests into their own files
- - <csr-id-ef8cf5636f782024372f044af80f06ed030168b0/> recursive deletion - tests can begin
- - <csr-id-dacb897405c06f9468faa860e27f47d1d0e548bb/> simple recursive copy - deletion would like depth-first though ;)
- - <csr-id-51ce1ed159d59c6e221af4df9a3f7da41b1820cb/> Basic for test with writable directory
-   Would have loved to use a crate with basic utilities, but there is
-   no internet here :(
- - <csr-id-6cbd4866b18de91d3702a55c45650615d67f5f30/> Make marker selection feel right
- - <csr-id-7ad2130bada27098e2d24f06650873a53b159f87/> Nicer colors for warn window in selection
- - <csr-id-49edb7654ce3380bcde28630645af3740cf1a07a/> Warning window follows user selection
- - <csr-id-984bf4fcce05cd5d495511123c2c3b6906b96f6d/> Fix handling of deleting the first index in the mark list
- - <csr-id-b4a2e0ee8f267ee50f92433e826fa9e42ff618db/> more prominent selection in mark pane
- - <csr-id-b4669c0214a1bc858cf437a65583af7e4b9ec277/> Rustic way of handling the mark panes disappearance
+- <csr-id-c67abaec3c573dbfaf31be22693220a49a67b262/> first test to fully verify deletion
+- <csr-id-a128eb4a6e675f148a203ac66de075ee0c0def1c/> Move parts of the tests into their own files
+- <csr-id-ef8cf5636f782024372f044af80f06ed030168b0/> recursive deletion - tests can begin
+- <csr-id-dacb897405c06f9468faa860e27f47d1d0e548bb/> simple recursive copy - deletion would like depth-first though ;)
+- <csr-id-51ce1ed159d59c6e221af4df9a3f7da41b1820cb/> Basic for test with writable directory
+  Would have loved to use a crate with basic utilities, but there is
+  no internet here :(
+- <csr-id-6cbd4866b18de91d3702a55c45650615d67f5f30/> Make marker selection feel right
+- <csr-id-7ad2130bada27098e2d24f06650873a53b159f87/> Nicer colors for warn window in selection
+- <csr-id-49edb7654ce3380bcde28630645af3740cf1a07a/> Warning window follows user selection
+- <csr-id-984bf4fcce05cd5d495511123c2c3b6906b96f6d/> Fix handling of deleting the first index in the mark list
+- <csr-id-b4a2e0ee8f267ee50f92433e826fa9e42ff618db/> more prominent selection in mark pane
+- <csr-id-b4669c0214a1bc858cf437a65583af7e4b9ec277/> Rustic way of handling the mark panes disappearance
 
- - <csr-id-fcde45752a9b86ed606b78f522f6b6dd0de25457/> don't show warning if nothing is marked anymore
-   this can happen if the user removes all entries. The pane stays open
-   in this case, which is a little inconsistent, but not worth fixing
-   as it's certainly not the common case.
-   
-   If it should be fixed, the 'key()' function should become consuming
-   to possible delete the pane.
- - <csr-id-01dd8e284224e42b59f317cd922d388f23def829/> Actually hook up spacebar in mark pane
- - <csr-id-d42573e63a120c8c5a253b7be52f9c68fb72274b/> Make help window pretty again
- - <csr-id-c0aa567e81b54913df464c9b500fe7a20ada0ea5/> Better handling of what is selected after removing a marked entry
- - <csr-id-f9a9cdf9f827a5e08b1bcc6035f908fdb971c9fd/> Don't try to go down as marked items are removed
+- <csr-id-fcde45752a9b86ed606b78f522f6b6dd0de25457/> don't show warning if nothing is marked anymore
+  this can happen if the user removes all entries. The pane stays open
+  in this case, which is a little inconsistent, but not worth fixing
+  as it's certainly not the common case.
+
+  If it should be fixed, the 'key()' function should become consuming
+  to possible delete the pane.
+
+- <csr-id-01dd8e284224e42b59f317cd922d388f23def829/> Actually hook up spacebar in mark pane
+- <csr-id-d42573e63a120c8c5a253b7be52f9c68fb72274b/> Make help window pretty again
+- <csr-id-c0aa567e81b54913df464c9b500fe7a20ada0ea5/> Better handling of what is selected after removing a marked entry
+- <csr-id-f9a9cdf9f827a5e08b1bcc6035f908fdb971c9fd/> Don't try to go down as marked items are removed
 
 ### Other Features
 
- * Single Unit Mode, see [reddit](https://www.reddit.com/r/rust/comments/bvjtan/introducing_dua_a_parallel_du_for_humans/epsroxg/)
+- Single Unit Mode, see [reddit](https://www.reddit.com/r/rust/comments/bvjtan/introducing_dua_a_parallel_du_for_humans/epsroxg/)
 
 ### Commit Statistics
 
@@ -4059,12 +4335,6 @@ A sub-command bringing up a terminal user interface to allow drilling into direc
     - Highlight files with a different color ([`495ccbd`](https://github.com/Byron/dua-cli/commit/495ccbda25cb27dc912c07fbdb29651b83f32c68))
 </details>
 
-## 1.2.0
-
-The first usable, read-only interactive terminal user interface.
-That's that. We also use `tui-react`, something that makes it much more pleasant to handle the
-application and GUI state.
-
 ## v1.1.0 (2019-06-01)
 
 ### Commit Statistics
@@ -4133,21 +4403,13 @@ Simple CLI to list top-level directories similar to sn-sort, but faster and more
     - First instantiation of template ([`e9a4472`](https://github.com/Byron/dua-cli/commit/e9a447250ba9ffd10f94f6f7d970c6da141c185d))
 </details>
 
-## v0.14.0 (2021-01-04)
+## v2.10.6
 
-## v0.13.0 (2020-11-15)
+Fix `dua -h` usage string.
 
-## v0.12.0 (2020-09-28)
+## 1.2.0
 
-## v0.10.1 (2020-07-22)
-
-## v0.10.0 (2020-07-22)
-
-## v0.4.1 (2020-07-10)
-
-## v0.3.0 (2020-04-03)
-
-## v0.2.2 (2020-03-29)
-
-## v0.0.1 (2020-10-26)
+The first usable, read-only interactive terminal user interface.
+That's that. We also use `tui-react`, something that makes it much more pleasant to handle the
+application and GUI state.
 

@@ -1,15 +1,18 @@
 use crate::interactive::widgets::COUNT;
-use crate::interactive::{
-    app::tree_view::TreeView, fit_string_graphemes_with_ellipsis, widgets::entry_color,
-    CursorDirection,
+use crate::interactive::widgets::tui_ext::{
+    List, ListProps, draw_text_nowrap_fn,
+    util::{block_width, rect, rect::line_bound},
 };
-use crosstermion::crossterm::event::{KeyEventKind, KeyModifiers};
-use crosstermion::input::Key;
-use dua::{traverse::TreeIndex, ByteFormat};
+use crate::interactive::{
+    CursorDirection, app::tree_view::TreeView, fit_string_graphemes_with_ellipsis,
+    widgets::entry_color,
+};
+use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
+use dua::{ByteFormat, traverse::TreeIndex};
 use itertools::Itertools;
 use std::{
     borrow::Borrow,
-    collections::{btree_map::Entry, BTreeMap},
+    collections::{BTreeMap, btree_map::Entry},
     path::PathBuf,
 };
 use tui::{
@@ -21,11 +24,6 @@ use tui::{
         Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget,
         Widget,
     },
-};
-use tui_react::{
-    draw_text_nowrap_fn,
-    util::{block_width, rect, rect::line_bound},
-    List, ListProps,
 };
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -117,19 +115,19 @@ impl MarkPane {
     pub fn into_paths(self) -> impl Iterator<Item = PathBuf> {
         self.marked.into_values().map(|v| v.path)
     }
-    pub fn process_events(mut self, key: Key) -> Option<(Self, Option<MarkMode>)> {
-        use crosstermion::crossterm::event::KeyCode::*;
+    pub fn process_events(mut self, key: KeyEvent) -> Option<(Self, Option<MarkMode>)> {
+        use crossterm::event::KeyCode::*;
         let action = None;
         if key.kind == KeyEventKind::Release {
             return Some((self, action));
         }
         match key.code {
             Char('r') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                return Some(self.prepare_deletion(MarkMode::Delete))
+                return Some(self.prepare_deletion(MarkMode::Delete));
             }
             #[cfg(feature = "trash-move")]
             Char('t') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                return Some(self.prepare_deletion(MarkMode::Trash))
+                return Some(self.prepare_deletion(MarkMode::Trash));
             }
             Char('a') => return None,
             Char('H') => self.change_selection(CursorDirection::ToTop),
@@ -145,7 +143,7 @@ impl MarkPane {
             Char('k') | Up => self.change_selection(CursorDirection::Up),
             Char('j') | Down => self.change_selection(CursorDirection::Down),
             Char('x') | Char('d') | Char(' ') => {
-                return self.remove_selected().map(|s| (s, action))
+                return self.remove_selected().map(|s| (s, action));
             }
             _ => {}
         };
@@ -474,8 +472,7 @@ impl MarkPane {
 
 pub fn calculate_size_and_count(marked: &EntryMarkMap) -> (u128, u64) {
     let entries: Vec<&EntryMark> = marked
-        .iter()
-        .map(|(_k, v)| v)
+        .values()
         .sorted_by(|a, b| Ord::cmp(&a.path, &b.path))
         .collect();
 

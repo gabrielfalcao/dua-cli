@@ -1,9 +1,9 @@
 use anyhow::{Context, Error, Result};
 use crossbeam::channel::Receiver;
-use crosstermion::{crossterm::event::KeyCode, input::Event};
+use crossterm::event::{Event, KeyCode};
 use dua::{
+    ByteFormat, Config, TraversalSorting, WalkOptions,
     traverse::{EntryData, Tree, TreeIndex},
-    ByteFormat, TraversalSorting, WalkOptions,
 };
 use itertools::Itertools;
 use jwalk::{DirEntry, WalkDir};
@@ -16,7 +16,7 @@ use std::{
     io::ErrorKind,
     path::{Path, PathBuf},
 };
-use tui::{backend::TestBackend, Terminal};
+use tui::{Terminal, backend::TestBackend};
 
 use crate::interactive::{app::tests::FIXTURE_PATH, terminal::TerminalApp};
 
@@ -31,11 +31,7 @@ pub fn into_events<'a>(events: impl IntoIterator<Item = Event> + 'a) -> Receiver
 }
 
 pub fn into_keys<'a>(codes: impl IntoIterator<Item = KeyCode> + 'a) -> Receiver<Event> {
-    into_events(
-        codes
-            .into_iter()
-            .map(|code| crosstermion::input::Event::Key(code.into())),
-    )
+    into_events(codes.into_iter().map(|code| Event::Key(code.into())))
 }
 
 pub fn into_codes(input: &str) -> Receiver<Event> {
@@ -201,6 +197,7 @@ pub fn initialized_app_and_terminal_with_closure(
         ByteFormat::Metric,
         false, /* entry-check */
         input_paths,
+        Config::default(),
     )?;
     app.traverse()?;
     app.run_until_traversed(&mut terminal, key_receive)?;

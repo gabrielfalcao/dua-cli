@@ -1,8 +1,9 @@
-use crate::{crossdev, get_size_or_panic, inodefilter::InodeFilter, Throttle, WalkOptions};
+use crate::{Throttle, WalkOptions, crossdev, get_size_or_panic, inodefilter::InodeFilter};
 
 use crossbeam::channel::Receiver;
 use filesize::PathExt;
-use petgraph::{graph::NodeIndex, stable_graph::StableGraph, Directed, Direction};
+use petgraph::{Directed, Direction, graph::NodeIndex, stable_graph::StableGraph};
+use std::time::Instant;
 use std::{
     fmt,
     fs::Metadata,
@@ -12,19 +13,26 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+/// Node index type used by the traversal tree graph.
 pub type TreeIndex = NodeIndex;
+/// Graph type used to represent traversed filesystem entries.
 pub type Tree = StableGraph<EntryData, (), Directed>;
 
+/// Data stored for each filesystem entry in the traversal tree.
 #[derive(Eq, PartialEq, Clone)]
 pub struct EntryData {
+    /// The entry name relative to its parent.
     pub name: PathBuf,
     /// The entry's size in bytes. If it's a directory, the size is the aggregated file size of all children
     /// plus the  size of the directory entry itself
     pub size: u128,
+    /// Last modification time if available.
     pub mtime: SystemTime,
+    /// Recursive entry count for directories, or `None` for files.
     pub entry_count: Option<u64>,
     /// If set, the item meta-data could not be obtained
     pub metadata_io_error: bool,
+    /// `true` if the entry is a directory.
     pub is_dir: bool,
 }
 
@@ -60,6 +68,10 @@ pub struct Traversal {
     pub tree: Tree,
     /// The top-level node of the tree.
     pub root_index: TreeIndex,
+    /// The time at which the instance was created, typically the start of the traversal.
+    pub start_time: Instant,
+    /// The time it cost to compute the traversal, when done.
+    pub cost: Option<Duration>,
 }
 
 impl Default for Traversal {
@@ -69,20 +81,33 @@ impl Default for Traversal {
 }
 
 impl Traversal {
+    /// Create a new empty traversal with a synthetic root node.
     pub fn new() -> Self {
         let mut tree = Tree::new();
         let root_index = tree.add_node(EntryData::default());
-        Self { tree, root_index }
+        Self {
+            tree,
+            root_index,
+            start_time: Instant::now(),
+            cost: None,
+        }
     }
 
-    pub fn recompute_node_size(&self, node_index: TreeIndex) -> u128 {
+    /// Recompute the recursive size of `node_index` from its direct children.
+    pub(crate) fn recompute_node_size(&self, node_index: TreeIndex) -> u128 {
         self.tree
             .neighbors_directed(node_index, Direction::Outgoing)
             .map(|idx| get_size_or_panic(&self.tree, idx))
             .sum()
     }
+
+    /// Return `true` if this traversal is considered expensive to recompute.
+    pub fn is_costly(&self) -> bool {
+        self.cost.is_none_or(|d| d.as_secs_f32() > 10.0)
+    }
 }
 
+/// Runtime statistics gathered while traversal is running.
 #[derive(Clone, Copy)]
 pub struct TraversalStats {
     /// Amount of files or directories we have seen during the filesystem traversal
@@ -109,14 +134,18 @@ impl Default for TraversalStats {
     }
 }
 
+/// Accumulator used while rolling up directory information.
 #[derive(Default, Copy, Clone)]
-pub struct EntryInfo {
-    pub size: u128,
-    pub entries_count: Option<u64>,
+struct EntryInfo {
+    /// Accumulated size in bytes.
+    size: u128,
+    /// Accumulated entry count if known.
+    entries_count: Option<u64>,
 }
 
 impl EntryInfo {
-    pub fn add_count(&mut self, other: &Self) {
+    /// Add `other`'s `entries_count` into `self`, preserving `None` semantics.
+    fn add_count(&mut self, other: &Self) {
         self.entries_count = match (self.entries_count, other.entries_count) {
             (Some(a), Some(b)) => Some(a + b),
             (None, Some(b)) => Some(b),
@@ -126,7 +155,10 @@ impl EntryInfo {
     }
 }
 
-pub fn set_entry_info_or_panic(
+/// Update `node_idx` with aggregated directory information.
+///
+/// `node_own_size` is added on top of `EntryInfo::size`.
+fn set_entry_info_or_panic(
     tree: &mut Tree,
     node_idx: TreeIndex,
     node_own_size: u128,
@@ -142,29 +174,37 @@ pub fn set_entry_info_or_panic(
     node.entry_count = entries_count.map(|n| n + 1);
 }
 
-pub fn parent_or_panic(tree: &mut Tree, parent_node_idx: TreeIndex) -> TreeIndex {
+/// Return the parent of `parent_node_idx` or panic if none exists.
+fn parent_or_panic(tree: &mut Tree, parent_node_idx: TreeIndex) -> TreeIndex {
     tree.neighbors_directed(parent_node_idx, Direction::Incoming)
         .next()
         .expect("every node in the iteration has a parent")
 }
 
-pub fn pop_or_panic<T>(v: &mut Vec<T>) -> T {
+/// Pop one element from `v` or panic if `v` is empty.
+fn pop_or_panic<T>(v: &mut Vec<T>) -> T {
     v.pop().expect("sizes per level to be in sync with graph")
 }
 
-pub type TraversalEntry =
+/// A single result emitted by the jwalk iterator.
+type TraversalEntry =
     Result<jwalk::DirEntry<((), Option<Result<std::fs::Metadata, jwalk::Error>>)>, jwalk::Error>;
 
 #[allow(clippy::large_enum_variant)]
+/// Events emitted by a background filesystem traversal.
 pub enum TraversalEvent {
+    /// A discovered entry and its traversal context.
     Entry(TraversalEntry, Arc<PathBuf>, u64),
+    /// Traversal completed with additional I/O error count.
     Finished(u64),
 }
 
 /// An in-progress traversal which exposes newly obtained entries
 pub struct BackgroundTraversal {
     walk_options: WalkOptions,
+    /// Tree node index that acts as root for this traversal integration.
     pub root_idx: TreeIndex,
+    /// Running traversal statistics.
     pub stats: TraversalStats,
     previous_node_idx: TreeIndex,
     parent_node_idx: TreeIndex,
@@ -178,6 +218,7 @@ pub struct BackgroundTraversal {
     throttle: Option<Throttle>,
     skip_root: bool,
     use_root_path: bool,
+    /// Receiver used to obtain traversal events from the worker thread.
     pub event_rx: Receiver<TraversalEvent>,
 }
 
@@ -286,7 +327,7 @@ impl BackgroundTraversal {
                         let mut mtime: SystemTime = UNIX_EPOCH;
                         let mut file_count = 0u64;
                         match &entry.client_state {
-                            Some(Ok(ref m)) => {
+                            Some(Ok(m)) => {
                                 if self.walk_options.count_hard_links
                                     || self.inodes.add(m)
                                         && (self.walk_options.cross_filesystems
@@ -452,12 +493,14 @@ impl BackgroundTraversal {
 }
 
 #[cfg(not(windows))]
-pub fn size_on_disk(_parent: &Path, name: &Path, meta: &Metadata) -> io::Result<u64> {
+/// Return disk usage for `name` on Unix-like platforms.
+fn size_on_disk(_parent: &Path, name: &Path, meta: &Metadata) -> io::Result<u64> {
     name.size_on_disk_fast(meta)
 }
 
 #[cfg(windows)]
-pub fn size_on_disk(parent: &Path, name: &Path, meta: &Metadata) -> io::Result<u64> {
+/// Return disk usage for `name` on Windows platforms.
+fn size_on_disk(parent: &Path, name: &Path, meta: &Metadata) -> io::Result<u64> {
     parent.join(name).size_on_disk_fast(meta)
 }
 

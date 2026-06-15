@@ -1,11 +1,14 @@
 #![forbid(rust_2018_idioms, unsafe_code)]
-use anyhow::Result;
-use clap::Parser;
-use dua::{canonicalize_ignore_dirs, TraversalSorting};
+use anyhow::{Context, Result, anyhow, bail};
+use clap::{CommandFactory as _, Parser};
+use dua::{TraversalSorting, canonicalize_ignore_dirs};
 use log::info;
-use simplelog::{Config, LevelFilter, WriteLogger};
-use std::fs::OpenOptions;
-use std::{fs, io, io::Write, path::PathBuf, process};
+use std::{
+    fs, io,
+    io::{IsTerminal, Write},
+    path::{Path, PathBuf},
+    process,
+};
 
 #[cfg(feature = "tui-crossplatform")]
 use crate::interactive::input::input_channel;
@@ -18,13 +21,24 @@ mod interactive;
 mod options;
 
 fn stderr_if_tty() -> Option<io::Stderr> {
-    if atty::is(atty::Stream::Stderr) {
-        Some(io::stderr())
+    let stderr = io::stderr();
+    if stderr.is_terminal() {
+        Some(stderr)
     } else {
         None
     }
 }
 
+#[cfg(feature = "tui-crossplatform")]
+struct InteractiveTerminalGuard;
+
+#[cfg(feature = "tui-crossplatform")]
+impl Drop for InteractiveTerminalGuard {
+    fn drop(&mut self) {
+        crossterm::terminal::disable_raw_mode().ok();
+        crossterm::execute!(io::stderr(), crossterm::terminal::LeaveAlternateScreen).ok();
+    }
+}
 fn main() -> Result<()> {
     use options::Command::*;
 
@@ -32,14 +46,28 @@ fn main() -> Result<()> {
 
     if let Some(log_file) = &opt.log_file {
         log_panics::init();
-        WriteLogger::init(
-            LevelFilter::Debug,
-            Config::default(),
-            OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(log_file)?,
-        )?;
+
+        let log_output = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(log_file)?;
+
+        fern::Dispatch::new()
+            .level(log::LevelFilter::Debug)
+            .format(|formatter_out, log_msg, log_rec| {
+                let when = jiff::Zoned::now();
+                formatter_out.finish(format_args!(
+                    "[{} {} {}:{}] {}",
+                    when.strftime("%Y-%m-%d %H:%M:%S%.3f %:z"),
+                    log_rec.level(),
+                    log_rec.file().unwrap_or("<unknown>"),
+                    log_rec.line().unwrap_or(0),
+                    log_msg
+                ))
+            })
+            .chain(log_output)
+            .apply()?;
+
         info!("dua options={opt:#?}");
     }
 
@@ -59,24 +87,31 @@ fn main() -> Result<()> {
         walk_options.threads = num_cpus::get();
     }
 
+    let cross_filesystems = walk_options.cross_filesystems;
+
     let res = match opt.command {
         #[cfg(feature = "tui-crossplatform")]
-        Some(Interactive {
-            no_entry_check,
-            input,
-        }) => {
-            use anyhow::{anyhow, Context};
-            use crosstermion::terminal::{tui::new_terminal, AlternateRawScreen};
+        Some(Interactive { no_entry_check }) => {
+            use anyhow::{Context, anyhow};
+            use crossterm::{
+                execute,
+                terminal::{EnterAlternateScreen, enable_raw_mode},
+            };
+            use tui::{Terminal, backend::CrosstermBackend};
+
+            let config = dua::Config::load()?;
 
             let no_tty_msg = "Interactive mode requires a connected terminal";
-            if atty::isnt(atty::Stream::Stderr) {
+            if !io::stderr().is_terminal() {
                 return Err(anyhow!(no_tty_msg));
             }
 
-            let mut terminal = new_terminal(
-                AlternateRawScreen::try_from(io::stderr()).with_context(|| no_tty_msg)?,
-            )
-            .with_context(|| "Could not instantiate terminal")?;
+            let mut stderr = io::stderr();
+            enable_raw_mode().with_context(|| no_tty_msg)?;
+            execute!(stderr, EnterAlternateScreen).with_context(|| no_tty_msg)?;
+            let terminal_guard = InteractiveTerminalGuard;
+            let mut terminal = Terminal::new(CrosstermBackend::new(stderr))
+                .with_context(|| "Could not instantiate terminal")?;
 
             let keys_rx = input_channel();
 
@@ -85,7 +120,8 @@ fn main() -> Result<()> {
                 walk_options,
                 byte_format,
                 !no_entry_check,
-                extract_paths_maybe_set_cwd(input, !opt.stay_on_filesystem)?,
+                extract_paths_maybe_set_cwd(opt.input, cross_filesystems)?,
+                config,
             )?;
             app.traverse()?;
 
@@ -105,6 +141,7 @@ fn main() -> Result<()> {
             std::mem::forget(app);
 
             drop(terminal);
+            drop(terminal_guard);
             io::stderr().flush().ok();
 
             // Exit 'quickly' to avoid having to not have to deal with slightly different types in the other match branches
@@ -122,7 +159,6 @@ fn main() -> Result<()> {
             );
         }
         Some(Aggregate {
-            input,
             no_total,
             no_sort,
             statistics,
@@ -136,12 +172,24 @@ fn main() -> Result<()> {
                 !no_total,
                 !no_sort,
                 byte_format,
-                extract_paths_maybe_set_cwd(input, !opt.stay_on_filesystem)?,
+                extract_paths_maybe_set_cwd(opt.input, cross_filesystems)?,
             )?;
             if statistics {
                 writeln!(io::stderr(), "{stats:?}").ok();
             }
             res
+        }
+        Some(Completions { shell }) => {
+            let mut cmd = options::Args::command();
+            let dua = cmd.get_name().to_string();
+            clap_complete::generate(shell, &mut cmd, dua, &mut io::stdout());
+            return Ok(());
+        }
+        Some(Config {
+            command: options::ConfigCommand::Edit,
+        }) => {
+            edit_config()?;
+            return Ok(());
         }
         None => {
             let stdout = io::stdout();
@@ -153,7 +201,7 @@ fn main() -> Result<()> {
                 true,
                 true,
                 byte_format,
-                extract_paths_maybe_set_cwd(opt.input, !opt.stay_on_filesystem)?,
+                extract_paths_maybe_set_cwd(opt.input, cross_filesystems)?,
             )?
             .0
         }
@@ -197,14 +245,85 @@ fn cwd_dirlist() -> Result<Vec<PathBuf>, io::Error> {
                 .and_then(|e| e.path().strip_prefix(".").ok().map(ToOwned::to_owned))
         })
         .filter(|p| {
-            if let Ok(meta) = p.symlink_metadata() {
-                if meta.file_type().is_symlink() {
-                    return false;
-                }
+            if let Ok(meta) = p.symlink_metadata()
+                && meta.file_type().is_symlink()
+            {
+                return false;
             };
             true
         })
         .collect();
     v.sort();
     Ok(v)
+}
+
+fn edit_config() -> Result<()> {
+    let path = dua::Config::path()?;
+
+    ensure_default_config_file(&path)?;
+
+    let editor = std::env::var("EDITOR").map_err(|_| {
+        anyhow!(
+            "$EDITOR is not set or is illformed UTF8. Created default configuration at {}",
+            path.display()
+        )
+    })?;
+
+    let Some(mut editor_parts) = shlex::split(&editor) else {
+        return Err(anyhow!(
+            "$EDITOR has invalid shell quoting. Created default configuration at {}",
+            path.display()
+        ));
+    };
+
+    if editor_parts.is_empty() {
+        bail!(
+            "$EDITOR is empty. Created default configuration at {}",
+            path.display()
+        )
+    };
+
+    let editor_program = editor_parts.remove(0);
+    let status = std::process::Command::new(&editor_program)
+        .args(editor_parts)
+        .arg(&path)
+        .status()
+        .with_context(|| {
+            format!(
+                "Failed to launch editor {editor_program:?} (from $EDITOR={editor:?}) for {}",
+                path.display()
+            )
+        })?;
+
+    if status.success() {
+        println!("Successfully edited '{}'", path.display());
+        return Ok(());
+    }
+
+    Err(anyhow!(
+        "Editor {editor_program:?} (from $EDITOR={editor:?}) exited with status {status} while editing {}",
+        path.display()
+    ))
+}
+
+fn ensure_default_config_file(path: &Path) -> Result<()> {
+    if let Some(parent_dir) = path.parent() {
+        fs::create_dir_all(parent_dir).with_context(|| {
+            format!(
+                "Could not create configuration directory {}",
+                parent_dir.display()
+            )
+        })?;
+    }
+
+    if !path.exists() {
+        fs::write(path, dua::Config::default_file_content()).with_context(|| {
+            format!(
+                "Could not write default configuration to {}",
+                path.display()
+            )
+        })?;
+    }
+
+    Ok(())
 }

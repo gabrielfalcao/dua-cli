@@ -1,9 +1,9 @@
-use crate::{crossdev, ByteFormat, InodeFilter, Throttle, WalkOptions, WalkResult};
 use anyhow::Result;
 use filesize::PathExt;
 use owo_colors::{AnsiColors as Color, OwoColorize, Stream::Stdout, Style};
 use supports_color::{ColorLevel, Stream};
 
+use crate::{ByteFormat, InodeFilter, Throttle, WalkOptions, WalkResult, crossdev};
 use std::time::Duration;
 use std::{io, path::Path};
 
@@ -157,12 +157,14 @@ fn output_colored_path(
     let size_width = byte_format.width();
     let path = path.as_ref().display();
 
-    let errors = (num_errors != 0)
-        .then(|| {
-            let plural_s = if num_errors > 1 { "s" } else { "" };
-            format!("  <{num_errors} IO Error{plural_s}>")
-        })
-        .unwrap_or_default();
+    let errors = if num_errors != 0 {
+        format!(
+            "  <{num_errors} IO Error{plural_s}>",
+            plural_s = if num_errors > 1 { "s" } else { "" }
+        )
+    } else {
+        "".into()
+    };
 
     if let Some(color) = path_color {
         writeln!(

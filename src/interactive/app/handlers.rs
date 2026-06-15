@@ -1,12 +1,13 @@
 use crate::interactive::{
+    DisplayOptions, EntryDataBundle,
     app::tree_view::TreeView,
     widgets::{Column, GlobPane, HelpPane, MainWindow, MarkMode, MarkPane},
-    DisplayOptions, EntryDataBundle,
 };
-use crosstermion::input::Key;
+use crossterm::event::KeyEvent;
+use dua::Config;
 use dua::traverse::TreeIndex;
 use std::{fs, io, path::PathBuf};
-use tui::{backend::Backend, Terminal};
+use tui::{Terminal, backend::Backend};
 
 use super::state::{AppState, FocussedPane::*};
 
@@ -212,7 +213,7 @@ impl AppState {
             &mut window.glob_pane,
         ) {
             (Main, Some(_), _, _) => Help,
-            (Help, _, Some(ref mut pane), _) => {
+            (Help, _, Some(pane), _) => {
                 pane.set_focus(true);
                 Mark
             }
@@ -221,7 +222,7 @@ impl AppState {
             (Mark, _, _, Some(_)) => Glob,
             (Mark, _, _, _) => Main,
             (Main, None, None, None) => Main,
-            (Main, None, Some(ref mut pane), _) => {
+            (Main, None, Some(pane), _) => {
                 pane.set_focus(true);
                 Mark
             }
@@ -232,11 +233,12 @@ impl AppState {
 
     pub fn dispatch_to_mark_pane<B>(
         &mut self,
-        key: Key,
+        key: KeyEvent,
         window: &mut MainWindow,
         tree_view: &mut TreeView<'_>,
         display: DisplayOptions,
         terminal: &mut Terminal<B>,
+        config: &Config,
     ) where
         B: Backend,
     {
@@ -248,7 +250,7 @@ impl AppState {
                     let mut entries_deleted = 0;
                     let res = pane.iterate_deletable_items(|mut pane, entry_to_delete| {
                         window.mark_pane = Some(pane);
-                        self.draw(window, tree_view, display, terminal).ok();
+                        self.draw(window, tree_view, display, terminal, config).ok();
                         pane = window.mark_pane.take().expect("option to be filled");
                         match self.delete_entry(entry_to_delete, tree_view) {
                             Ok(ed) => {
@@ -268,7 +270,7 @@ impl AppState {
                     let mut entries_trashed = 0;
                     let res = pane.iterate_deletable_items(|mut pane, entry_to_trash| {
                         window.mark_pane = Some(pane);
-                        self.draw(window, tree_view, display, terminal).ok();
+                        self.draw(window, tree_view, display, terminal, config).ok();
                         pane = window.mark_pane.take().expect("option to be filled");
                         match self.trash_entry(entry_to_trash, tree_view) {
                             Ok(ed) => {
@@ -462,15 +464,13 @@ fn delete_directory_recursively(path: PathBuf) -> Result<(), usize> {
                     }
                 }
             }
-            // Err(ref e) if e.kind() == io::ErrorKind::NotADirectory => {
-            //     // assume file, save IOps
-            //     num_errors += into_error_count(fs::remove_file(path));
-            //     continue;
-            // }
-            Err(_) => {
-                // TODO: Reintroduce commented code once the `io_error_more` feature is stable
-                // num_errors += 1;
+            Err(ref e) if e.kind() == io::ErrorKind::NotADirectory => {
+                // try again with file deletion instead.
                 num_errors += into_error_count(fs::remove_file(path));
+                continue;
+            }
+            Err(_) => {
+                num_errors += 1;
                 continue;
             }
         };

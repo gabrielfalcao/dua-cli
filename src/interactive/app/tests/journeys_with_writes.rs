@@ -1,9 +1,8 @@
 use crate::interactive::app::tests::utils::{
-    initialized_app_and_terminal_from_paths, into_codes, WritableFixture,
+    WritableFixture, initialized_app_and_terminal_from_paths, into_codes,
 };
 use anyhow::Result;
-use crosstermion::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use crosstermion::input::Event;
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -12,7 +11,8 @@ fn basic_user_journey_with_deletion() -> Result<()> {
     use crate::interactive::app::tests::utils::into_events;
 
     let fixture = WritableFixture::from("sample-02");
-    let (mut terminal, mut app) = initialized_app_and_terminal_from_paths(&[fixture.root.clone()])?;
+    let (mut terminal, mut app) =
+        initialized_app_and_terminal_from_paths(std::slice::from_ref(&fixture.root))?;
 
     // With a selection of items
     app.process_events(&mut terminal, into_codes("doddd"))?;
