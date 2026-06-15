@@ -134,11 +134,13 @@ pub fn aggregate(
 }
 
 fn path_color_of(path: impl AsRef<Path>) -> Option<Color> {
-    let level = supports_color::on(Stream::Stdout);
-
-    match (level.has_basic, level.has_256, level.has_16m) {
-        (false, false, false) => None,
-        (true, _, _) => (!path.as_ref().is_file()).then_some(Color::Cyan),
+    match supports_color::on(Stream::Stdout)? {
+        ColorLevel {
+            has_basic: false, ..
+        } => None,
+        ColorLevel {
+            has_basic: true, ..
+        } => (!path.as_ref().is_file()).then_some(Color::Cyan),
     }
 }
 
