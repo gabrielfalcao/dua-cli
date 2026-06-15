@@ -306,6 +306,11 @@ impl AppState {
         EntryCheck::new(self.scan.is_some(), self.allow_entry_check)
     }
 
+    fn toggle_ui_split(
+        &mut self,
+    ) {
+        self.ui_split = !self.ui_split;
+    }
     fn process_terminal_event<B>(
         &mut self,
         window: &mut MainWindow,
@@ -377,6 +382,9 @@ impl AppState {
                 return Ok(Some(WalkResult {
                     num_errors: self.stats.io_errors,
                 }));
+            }
+            Char('U') => {
+                self.toggle_ui_split();
             }
             _ => {
                 handled = false;

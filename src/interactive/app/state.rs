@@ -65,6 +65,8 @@ pub struct AppState {
     pub allow_entry_check: bool,
     /// Whether the next quit/back action should exit the app.
     pub pending_exit: bool,
+    /// If true, marking files splits to the bottom rather than the right
+    pub ui_split: bool,
 }
 
 impl AppState {
@@ -87,6 +89,7 @@ impl AppState {
             root_paths: input,
             allow_entry_check: true,
             pending_exit: false,
+            ui_split: false,
         }
     }
 }
