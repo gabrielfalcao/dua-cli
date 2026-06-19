@@ -1,14 +1,14 @@
 #![forbid(rust_2018_idioms, unsafe_code)]
+use crate::interactive::widgets::EntryMark;
 use anyhow::{Context, Result, anyhow, bail};
+use byte_unit::Byte;
 use clap::{CommandFactory as _, Parser};
 use dua::{TraversalSorting, canonicalize_ignore_dirs};
 use log::info;
-use std::{
-    fs, io,
-    io::{IsTerminal, Write},
-    path::{Path, PathBuf},
-    process,
-};
+use std::fmt::Formatter;
+use std::io::{IsTerminal, Write};
+use std::path::{Path, PathBuf};
+use std::{fs, io, process};
 
 #[cfg(feature = "tui-crossplatform")]
 use crate::interactive::input::input_channel;
@@ -39,6 +39,37 @@ impl Drop for InteractiveTerminalGuard {
         crossterm::execute!(io::stderr(), crossterm::terminal::LeaveAlternateScreen).ok();
     }
 }
+
+#[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
+pub struct SizedPath {
+    pub path: PathBuf,
+    pub size: u128,
+}
+impl SizedPath {
+    pub fn new(path: PathBuf, size: u128) -> SizedPath {
+        SizedPath { path, size }
+    }
+    pub fn to_path(&self) -> PathBuf {
+        self.path.clone()
+    }
+    pub fn to_byte_unit(&self) -> Byte {
+        Byte::from_bytes(self.size)
+    }
+    pub fn to_pretty_size(&self) -> String {
+        self.to_byte_unit()
+            .get_appropriate_unit(false)
+            .to_string()
+            .replace(" ", "")
+            .to_string()
+    }
+}
+
+impl std::fmt::Display for SizedPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.path.display(), self.to_pretty_size())
+    }
+}
+
 fn main() -> Result<()> {
     use options::Command::*;
 
@@ -93,11 +124,10 @@ fn main() -> Result<()> {
         #[cfg(feature = "tui-crossplatform")]
         Some(Interactive { no_entry_check }) => {
             use anyhow::{Context, anyhow};
-            use crossterm::{
-                execute,
-                terminal::{EnterAlternateScreen, enable_raw_mode},
-            };
-            use tui::{Terminal, backend::CrosstermBackend};
+            use crossterm::execute;
+            use crossterm::terminal::{EnterAlternateScreen, enable_raw_mode};
+            use tui::Terminal;
+            use tui::backend::CrosstermBackend;
 
             let config = dua::Config::load()?;
 
@@ -130,10 +160,26 @@ fn main() -> Result<()> {
             let res = res.map(|r| {
                 (
                     r,
-                    app.window
-                        .mark_pane
-                        .take()
-                        .map(|marked| marked.into_paths()),
+                    app.window.mark_pane.take().map(|marked_widget| {
+                        let mut path_and_sizes = Vec::<SizedPath>::new();
+                        let marked = marked_widget.marked();
+                        for (key, entry) in marked.iter() {
+                            let size = entry.size;
+                            let path = entry
+                                .path
+                                .canonicalize()
+                                .unwrap_or_else(|_| entry.path.clone());
+                            // let index = entry.index;
+                            // let num_errors_during_deletion = entry.num_errors_during_deletion;
+                            // let is_dir = entry.is_dir;
+                            // let entry_count = entry.entry_count;
+                            // let value = format!("{path} {size}");
+                            path_and_sizes.push(SizedPath::new(path, size))
+                        }
+                        // marked_widget.into_paths()
+                        path_and_sizes
+                        // println!("\x1b[1;48;2;143;211;255m\x1b[1;38;5;0;0;0m{key:#?}\x1b[0m\x1b[1;48;2;240;79;120m\x1b[1;38;5;0;0;0m{value}\x1b[0m");
+                    }),
                 )
             });
             // Leak app memory to avoid having to wait for the hashmap to deallocate,
@@ -147,10 +193,10 @@ fn main() -> Result<()> {
             // Exit 'quickly' to avoid having to not have to deal with slightly different types in the other match branches
             std::process::exit(
                 res.map(|(walk_result, paths)| {
+                    // eprintln!("\x1b[1;48;2;240;79;120m\x1b[1;38;5;0;0;0m{walk_result:#?}\x1b[0m");
                     if let Some(paths) = paths {
                         for path in paths {
-                            let fallback = path.clone();
-                            println!("{}", path.canonicalize().unwrap_or(fallback).display())
+                            println!("{path}")
                         }
                     }
                     walk_result.to_exit_code()
@@ -245,12 +291,17 @@ fn cwd_dirlist() -> Result<Vec<PathBuf>, io::Error> {
                 .and_then(|e| e.path().strip_prefix(".").ok().map(ToOwned::to_owned))
         })
         .filter(|p| {
-            if let Ok(meta) = p.symlink_metadata()
-                && meta.file_type().is_symlink()
-            {
-                return false;
-            };
-            true
+            let path = p.clone();
+            match p.symlink_metadata() {
+                Ok(meta) => {
+                    if meta.file_type().is_symlink() {
+                        false
+                    } else {
+                        true
+                    }
+                }
+                Err(_e) => true,
+            }
         })
         .collect();
     v.sort();

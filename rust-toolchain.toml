@@ -1,0 +1,61 @@
+[toolchain]
+channel = "nightly-2026-05-24"
+
+components = [
+"rust-src",
+"rust-std",
+"rustc-dev",
+"rustfmt",
+"llvm-tools-preview",
+"rustfmt",
+"rust-docs",
+
+# "clippy",
+# "llvm-bitcode-linker",
+# "rust-std-wasm32-unknown-emscripten",
+# "rust-std-wasm32-unknown-unknown",
+# "rust-analysis",
+# "rust-analyzer",
+# "rustc-codegen-cranelift",
+# "rust-docs-json",
+
+
+]
+# https://openwrt.org/toh/gl.inet/gl-mt1300_v1
+# https://firmware-selector.openwrt.org/?version=25.12.3
+targets = [
+    "aarch64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-gnu",
+    # "mipsel-openwrt-linux-musl",
+    # "mipsel-unknown-linux-musl",
+
+    # "mips64el-unknown-linux-gnuabi64",
+    # "mips64el-unknown-linux-muslabi64",
+
+    # "armv7-linux-androideabi",
+    # "armv7-unknown-linux-gnueabi",
+    # "armv7-unknown-linux-gnueabihf",
+    # "armv7-unknown-linux-musleabi",
+    # "armv7-unknown-linux-musleabihf",
+
+
+    # "thumbv6m-none-eabi",
+    # "thumbv7em-none-eabi",
+    # "thumbv7em-none-eabihf",
+    # "thumbv7m-none-eabi",
+    # "thumbv7neon-linux-androideabi",
+    # "thumbv7neon-unknown-linux-gnueabihf",
+
+    # "thumbv8m.base-none-eabi",
+    # "thumbv8m.main-none-eabi",
+    # "thumbv8m.main-none-eabihf",
+
+
+    # "wasm32-unknown-emscripten",
+    # "wasm32-unknown-unknown",
+    # "wasm32-wasip1",
+    # "wasm32-wasip1-threads",
+    # "wasm32-wasip2",
+    # "wasm32v1-none",
+]
